@@ -24,7 +24,7 @@ Users often struggle to decide:
 
 ##  Key Features
 
-- 🔄 **Multimodal Route Planning**  
+-  **Multimodal Route Planning**  
   Plan journeys using combinations of:
   - 🚌 Bus  
   - 🚆 Train  
