@@ -1,4 +1,4 @@
-# 🚦 Margify
+#  Margify
 
 **Margify** is a multimodal transportation planning platform that helps users find the **best way to travel** between two locations by intelligently comparing different modes of transport — based on **cost, duration, and comfort**.
 
@@ -6,7 +6,7 @@ From **bus, train, metro, bike, auto, cab, and flights**, Margify brings all opt
 
 ---
 
-## 🌍 Problem Statement
+##  Problem Statement
 
 Travel planning today is:
 - Fragmented across multiple apps
@@ -22,7 +22,7 @@ Users often struggle to decide:
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 - 🔄 **Multimodal Route Planning**  
   Plan journeys using combinations of:
@@ -34,23 +34,23 @@ Users often struggle to decide:
   - 🚕 Cab  
   - ✈️ Flight  
 
-- 💰 **Cost Comparison**  
+-  **Cost Comparison**  
   Compare total travel cost across different route combinations.
 
-- ⏱ **Time Optimization**  
+-  **Time Optimization**  
   Identify the fastest routes and time-efficient travel options.
 
-- 🎯 **Smart Route Categories**
+-  **Smart Route Categories**
   - Cheapest  
   - Fastest  
   - Comfortable / Premium  
 
-- 📍 **Source → Destination Intelligence**  
+-  **Source → Destination Intelligence**  
   Intelligent suggestions for:
   - First-mile and last-mile travel (Bike / Auto)
   - Mode switching points
   - Short-distance vs long-distance travel
 
-- 🧠 **Decision Support**  
+-  **Decision Support**  
   Helps users choose the most suitable transport mode based on distance, budget, and urgency.
 
