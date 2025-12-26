@@ -1,0 +1,19 @@
+
+html{
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+}
+body{
+  background-image: url('./images/background.svg');
+  background-size:cover;
+  background-repeat: no-repeat;
+}
+
+
+@font-face {
+  font-family: 'Kiona-Regular';
+  src: url('/fonts/kiona_2/Kiona-Regular.ttf') format('truetype');
+}
