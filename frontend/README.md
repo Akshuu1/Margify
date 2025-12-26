@@ -1,18 +1,56 @@
-# React + Vite
+# 🚦 Margify
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Margify** is a multimodal transportation planning platform that helps users find the **best way to travel** between two locations by intelligently comparing different modes of transport — based on **cost, duration, and comfort**.
 
-Currently, two official plugins are available:
+From **bus, train, metro, bike, auto, cab, and flights**, Margify brings all options together and suggests the **cheapest**, **fastest**, or **most comfortable** routes in one place.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🌍 Problem Statement
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Travel planning today is:
+- Fragmented across multiple apps
+- Hard to compare different transport modes
+- Time-consuming and inefficient
 
-Note: This will impact Vite dev & build performances.
+Users often struggle to decide:
+- Which transport mode should I use?
+- From where to where should I switch modes?
+- Which option is cheaper, faster, or more practical?
 
-## Expanding the ESLint configuration
+**Margify solves this by unifying multimodal travel planning into a single intelligent platform.**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## ✨ Key Features
+
+- 🔄 **Multimodal Route Planning**  
+  Plan journeys using combinations of:
+  - 🚌 Bus  
+  - 🚆 Train  
+  - 🚇 Metro  
+  - 🚲 Bike  
+  - 🛺 Auto  
+  - 🚕 Cab  
+  - ✈️ Flight  
+
+- 💰 **Cost Comparison**  
+  Compare total travel cost across different route combinations.
+
+- ⏱ **Time Optimization**  
+  Identify the fastest routes and time-efficient travel options.
+
+- 🎯 **Smart Route Categories**
+  - Cheapest  
+  - Fastest  
+  - Comfortable / Premium  
+
+- 📍 **Source → Destination Intelligence**  
+  Intelligent suggestions for:
+  - First-mile and last-mile travel (Bike / Auto)
+  - Mode switching points
+  - Short-distance vs long-distance travel
+
+- 🧠 **Decision Support**  
+  Helps users choose the most suitable transport mode based on distance, budget, and urgency.
+
