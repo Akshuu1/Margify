@@ -3,6 +3,7 @@ import './index.css'
 import Home from './pages/Home'
 import { Login } from './pages/Login'
 import { Signup } from './pages/SignUp'
+import { SearchLocation } from './pages/SearchLocation'
 
 function App() {
 
@@ -11,6 +12,7 @@ function App() {
     {/* <Home /> */}
     {/* <Login /> */}
     {/* <Signup /> */}
+    <SearchLocation />
   </>
   )
 }
