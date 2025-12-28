@@ -15,35 +15,34 @@ export default function Home() {
         onComplete:() =>{
             navigate('/login')
         }
-    });
+    })
 
-t1.from(lettersRef.current, {
-  y: 80,
-  opacity:0,
-  duration: 0.5,
-  stagger: 0.25,
-  ease: "power3.out",
-});
-
-t1.to(
-  lettersRef.current,
-  {
-    opacity: 1,
-    duration: 1,       
+    t1.from(lettersRef.current, {
+    y: 80,
+    opacity:0,
+    duration: 0.5,
     stagger: 0.25,
-    ease: "power1.out",  
-  },
-);
-
-t1.to(
-  containerRef.current,
-  {
-    scale: 1.5,
-    opacity: 0,
-    duration: 0.8,
-    ease: "power2.inOut",
-  }
-);
+    ease: "power3.out",
+    })
+    t1.to(
+    lettersRef.current,
+    {
+        y:100,
+        opacity: 1,
+        duration: 1,       
+        stagger: 0.25,
+        ease: "power1.out",  
+    },
+    )
+    t1.to(
+    containerRef.current,
+    {
+        scale: 1.5,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power2.inOut",
+    }
+    )
 },[])
 
     return (

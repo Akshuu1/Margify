@@ -8,7 +8,7 @@ export function Signup (){
                 <form>
                     <div className="flex flex-col items-start">
                     <label className="text-[.8rem] ml-[8px]">Name</label>
-                    <input type='text' name="Email" placeholder="Enter your name" required className="w-full bg-[#2F2F2F] rounded-xl p-[5px]"/>
+                    <input type='text' name="name" placeholder="Enter your name" required className="w-full bg-[#2F2F2F] rounded-xl p-[5px]"/>
                     </div>
                     <div className="flex flex-col items-start">
                     <label className="text-[.8rem] ml-[8px]">Email</label>
@@ -16,7 +16,7 @@ export function Signup (){
                     </div>
                     <div className="flex flex-col items-start">
                     <label className="text-[.8rem] ml-[8px]">Password</label>
-                    <input type='password' name="Email" placeholder="Enter your password" className="w-full bg-[#2F2F2F] rounded-xl p-[5px]" required/>
+                    <input type='password' name="password" placeholder="Enter your password" className="w-full bg-[#2F2F2F] rounded-xl p-[5px]" required/>
                     </div>
                     <button type='submit' className="bg-[#FFCB74] mt-[1rem] w-full text-[#111111] rounded-xl p-[.3rem] ">Create your account</button>
                 </form>
