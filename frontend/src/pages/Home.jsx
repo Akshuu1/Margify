@@ -18,11 +18,11 @@ export default function Home() {
       return
     }
 
-    const tl = gsap.timeline({
+    const t1 = gsap.timeline({
       onComplete: () => navigate("/login"),
     })
 
-    tl.fromTo(
+    t1.fromTo(
   lettersRef.current,
   {
     y: -500,
@@ -38,8 +38,33 @@ export default function Home() {
   }
 )
 
-    tl.to(containerRef.current, {
-      scale: 1.5,
+t1.to(
+  lettersRef.current,
+  {
+    textShadow: "0px 0px 18px rgba(255, 255, 255, 0.7)",
+    duration: .6,
+    stagger: {
+      each: 0.1,
+      from:'random'
+    },
+    ease: "power2.out",
+  }
+)
+
+// t1.to(
+//   lettersRef.current,
+//   {
+//     textShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
+//     duration: 0.35,
+//     stagger: {
+//       each: 0.05,
+//       from: "center",
+//     },
+//     ease: "power2.in",
+//   })
+    
+    t1.to(containerRef.current, {
+      scale: 1.6,
       opacity: 0,
       duration: 0.8,
       ease: "power2.inOut",
