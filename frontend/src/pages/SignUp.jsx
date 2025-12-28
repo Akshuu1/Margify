@@ -8,7 +8,7 @@ export function Signup (){
                 <form>
                     <div className="flex flex-col items-start">
                     <label className="text-[.8rem] ml-[8px]">Name</label>
-                    <input type='email' name="Email" placeholder="Enter your name" required className="w-full bg-[#2F2F2F] rounded-xl p-[5px]"/>
+                    <input type='text' name="Email" placeholder="Enter your name" required className="w-full bg-[#2F2F2F] rounded-xl p-[5px]"/>
                     </div>
                     <div className="flex flex-col items-start">
                     <label className="text-[.8rem] ml-[8px]">Email</label>
