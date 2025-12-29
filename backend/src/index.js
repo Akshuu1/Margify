@@ -8,15 +8,18 @@ const app = express()
 dotenv.config()
 connectDB()
 
-app.use(cors())
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://margify.onrender.com'],
+    credentials: true
+}))
 app.use(express.json())
 
-app.use('/api/auth',require('./routes/authRoutes'))
-app.get('/',(req,res) =>{
+app.use('/api/auth', require('./routes/authRoutes'))
+app.get('/', (req, res) => {
     res.send('Server Working')
 })
 const PORT = process.env.PORT || 5000
 
-app.listen(PORT,() =>{
+app.listen(PORT, () => {
     console.log('Server Started')
 })
