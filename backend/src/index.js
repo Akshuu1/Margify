@@ -8,14 +8,15 @@ const app = express()
 dotenv.config()
 connectDB()
 
-// app.use(cors({
-//     origin: ['http://localhost:5173', 'https://margify.onrender.com'],
-//     credentials: true
-// }))
-app.use(cors())
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://margify.onrender.com'],
+    credentials: true
+}))
+// app.use(cors())
 app.use(express.json())
 
 app.use('/api/auth', require('./routes/authRoutes'))
+app.use('/api/routes',require('./routes/routePlannerRoutes'))
 app.get('/', (req, res) => {
     res.send('Server Working')
 })
