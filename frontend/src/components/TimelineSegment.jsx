@@ -3,7 +3,6 @@ import { formatDuration, formatCurrency } from "../utils/format";
 export function TimelineSegment({ segment, isLast }) {
     const { mode, from, to, duration, cost } = segment;
 
-    // Icon mapping
     const getIcon = (mode) => {
         switch (mode) {
             case 'WALK': return <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2M9.8 8.9L7 23h2.1l1.8-8l2.1 2v6h2v-7.5l-2.1-2l.6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1c-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" /></svg>;
@@ -20,7 +19,6 @@ export function TimelineSegment({ segment, isLast }) {
 
     return (
         <div className="flex gap-4 relative">
-            {/* Icon and Line Column */}
             <div className="flex flex-col items-center">
                 <div className="text-2xl text-[#e0e0e0] z-10 bg-[#1c1c1c] rounded-full p-1">
                     {getIcon(mode)}
@@ -30,7 +28,6 @@ export function TimelineSegment({ segment, isLast }) {
                 )}
             </div>
 
-            {/* Details Column */}
             <div className="flex-1 pb-6">
                 <div className="flex justify-between items-start">
                     <div>
@@ -47,7 +44,6 @@ export function TimelineSegment({ segment, isLast }) {
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#888]"></div>
                                 {from}
                             </div>
-                            {/* Dotted line to indicate travel */}
                             <div className="ml-[2.5px] border-l border-dashed border-[#555] h-3 my-1"></div>
                             <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#888]"></div>

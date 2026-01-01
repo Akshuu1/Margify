@@ -4,7 +4,7 @@ export function BadgeBar({ routes }) {
   const best = routes.find(r => r.tag === "Best");
   const luxury = routes.find(r =>
     r.modes.includes("CAB") || r.modes.includes("PLANE")
-  );
+  )
 
   return (
     <div className="flex gap-4">

@@ -20,10 +20,9 @@ const RATES = {
   BUS: 3,
   METRO: 4,
   TRAIN: 2,
-  PLANE: 100 // simplified
+  PLANE: 100 
 };
 
-// Base fares (₹) to add once per mode usage
 const BASE_FARES = {
   WALK: 0,
   AUTO: 30,
@@ -53,25 +52,21 @@ exports.planRoute = async (req, res) => {
       let totalCost = 0;
 
       const segments = [];
-      let currentLocation = "Source Location"; // Default start
-      if (from.name) currentLocation = from.name.split(',')[0]; // Try to use short name
+      let currentLocation = "Source Location"; 
+      if (from.name) currentLocation = from.name.split(',')[0]; 
 
-      // Distribute distance across modes roughly equal for now
       const segmentDist = distanceKm / modes.length;
 
       modes.forEach((mode, i) => {
         const speed = SPEEDS[mode] || 30;
         const rate = RATES[mode] || 10;
         const base = BASE_FARES[mode] || 0;
-
-        // Time & Cost
         const time = Math.round((segmentDist / speed) * 60);
         const cost = Math.round((segmentDist * rate) + base);
 
         totalTimeMin += time;
         totalCost += cost;
 
-        // Determine Next Location Name (Mocking)
         let nextLocation = "Destination";
         if (i < modes.length - 1) {
           const nextMode = modes[i + 1];
@@ -96,8 +91,6 @@ exports.planRoute = async (req, res) => {
         currentLocation = nextLocation;
       });
 
-      // Add transfer time penalty (10 mins per transfer) to total ONLY? 
-      // Or distribute it? Let's just add to total for now to keep segments clean.
       if (modes.length > 1) {
         totalTimeMin += (modes.length - 1) * 10;
       }
@@ -107,14 +100,14 @@ exports.planRoute = async (req, res) => {
 
       let tag = null;
       if (modes.length === 1 && modes[0] === 'BIKE') tag = "Fastest";
-      if (modes.includes('METRO')) tag = "Eco-Friendly";
-      if (modes.includes('CAB')) tag = "Comfort";
+      if (modes.includes('METRO')) tag = "Best";
+      if (modes.includes('CAB')) tag = "Luxury"
       if (index === 0) tag = "Best";
 
       return {
         id: index + 1,
-        modes, // Keep for backward compat if needed, simplified
-        segments, // NEW: Detailed segments
+        modes, 
+        segments, 
         totalTime: Math.round(totalTimeMin),
         priceRange: { min: priceMin, max: priceMax },
         tag,
@@ -122,13 +115,11 @@ exports.planRoute = async (req, res) => {
       };
     });
 
-    // Sort to actually find cheapest/fastest for tagging
     enrichedRoutes.sort((a, b) => a.totalTime - b.totalTime);
     if (enrichedRoutes.length > 0) enrichedRoutes[0].tag = "Fastest";
 
     const cheapest = [...enrichedRoutes].sort((a, b) => a.priceRange.min - b.priceRange.min);
     if (cheapest.length > 0) {
-      // Find the object in original array and tag it
       const cheapId = cheapest[0].id;
       const match = enrichedRoutes.find(r => r.id === cheapId);
       if (match && match.tag !== "Fastest") match.tag = "Cheapest";
