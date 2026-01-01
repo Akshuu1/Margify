@@ -41,8 +41,12 @@ const BASE_FARES = {
 exports.planRoute = async (req, res) => {
   try {
     const { from, to } = req.body;
+    console.log("Received Route Request:");
+    console.log("From:", from);
+    console.log("To:", to);
 
     const distanceKm = await getDistance(from, to);
+    console.log("Calculated Distance (km):", distanceKm);
     const validRoutes = ROUTE_TEMPLATES.filter((template) =>
       isTemplateValid(template, distanceKm)
     );

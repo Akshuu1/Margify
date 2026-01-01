@@ -18,7 +18,7 @@ export function RouteCard({ route }) {
           <TimelineSegment
             key={index}
             segment={segment}
-            isLast={index === segments.length - 1}/>
+            isLast={index === segments.length - 1} />
         ))}
       </div>
 
@@ -49,7 +49,7 @@ export function RouteCard({ route }) {
         </div>
 
         <div className="flex items-center gap-1 border-l border-black/20 pl-3">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M17 20.41L18.41 19l-5-5l-5 5L9.82 20.41L13.41 16.83V21h1.17v-4.17zM5 8h1.17v4.17l3.59-3.59L8.41 7.17l-5 5l-5-5l1.41-1.41L3.41 9.41V5h-1.17zM21 5h-1.17v4.17l-3.59-3.59L17.59 7.17l5 5l5-5l-1.41-1.41L22.59 9.41V5h1.17z" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3M21 9l-3.99-4v3H10v2h7.01v3L21 9" /></svg>
           {route.transfers} Transfers
         </div>
       </div>

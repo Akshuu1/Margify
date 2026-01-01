@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { loginUser } from "../services/auth"
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
 
 export function Login() {
   const navigate = useNavigate()
@@ -10,10 +10,10 @@ export function Login() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (token){
-      navigate('/search', {replace:true} )
+    if (token) {
+      navigate('/search', { replace: true })
     }
-  })
+  }, [navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
