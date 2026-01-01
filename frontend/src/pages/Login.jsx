@@ -1,12 +1,19 @@
 import { useNavigate } from "react-router-dom"
 import { loginUser } from "../services/auth"
-import { useState } from "react"
+import { useState,useEffect } from "react"
 
 export function Login() {
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token){
+      navigate('/search', {replace:true} )
+    }
+  })
 
   const handleLogin = async (e) => {
     e.preventDefault()

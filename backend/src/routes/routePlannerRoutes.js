@@ -3,7 +3,7 @@ const router = express.Router()
 const { secure } = require('../middleware/middleware')
 const { planRoute } = require('../controllers/routePlannerController')
 
-router.post('/plan',secure,planRoute)
+router.post('/plan', secure, planRoute)
 console.log("routePlannerRoutes loaded");
 
 
