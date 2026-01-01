@@ -7,4 +7,4 @@ router.post('/plan', secure, planRoute)
 console.log("routePlannerRoutes loaded");
 
 
-module.exports = routerx
+module.exports = router
