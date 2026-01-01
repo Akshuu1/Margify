@@ -1,4 +1,3 @@
-// Hardcoded for local debugging
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export async function getRoutes(from, to, token) {
