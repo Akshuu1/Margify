@@ -2,11 +2,11 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const Navbar = () => {
-    const data = localStorage.getItem('user');
-    const user = data ? JSON.parse(data) : null;
-    const name = user ? user.name : "Guest";
-    const navigate = useNavigate();
-    const location = useLocation();
+    const data = localStorage.getItem('user')
+    const user = data ? JSON.parse(data) : null
+    const name = user ? user.name : "Guest"
+    const navigate = useNavigate()
+    const location = useLocation()
     if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname==='/') {
         return null;
     }
