@@ -1,6 +1,4 @@
-// FORCING LOCAL BACKEND
-const BACKEND_URL = 'http://localhost:3000';
-// const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export const signupUser = async (data) => {
     const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
