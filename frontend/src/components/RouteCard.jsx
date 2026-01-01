@@ -4,12 +4,13 @@ import { formatDuration, formatCurrency } from "../utils/format"
 export function RouteCard({ route }) {
   const segments = route.segments || []
 
-  
+
   const TAG_STYLES = {
     Cheapest: "bg-[#b7e28b] text-[#111111]",
     Fastest: "bg-[#7db3ff] text-[#111111]",
     Best: "bg-[#FFCB74] text-[#111111]",
     Luxury: "bg-[#d6a8ff] text-[#111111]",
+    Alternative: "bg-[#cba880] text-[#e0e0e0] border border-white/10",
   }
 
   const tagClass =
@@ -26,7 +27,7 @@ export function RouteCard({ route }) {
       </div>
       <div className="flex flex-col gap-1 flex-1">
         {segments.map((segment, index) => (
-          <TimelineSegment key={index} segment={segment} isLast={index === segments.length - 1}/>
+          <TimelineSegment key={index} segment={segment} isLast={index === segments.length - 1} />
         ))}
       </div>
       <div className="bg-[#FFCB74] text-[#111111] rounded-xl mt-6 px-4 py-3 flex justify-between items-center text-sm font-medium">
@@ -42,7 +43,7 @@ export function RouteCard({ route }) {
           km
         </div>
         <div className="flex items-center gap-1 border-l border-black/20 pl-3">
-          {formatCurrency(route.priceRange.min)} – {route.priceRange.max}
+          {formatCurrency(route.priceRange.min)} – {formatCurrency(route.priceRange.max)}
         </div>
         <div className="flex items-center gap-1 border-l border-black/20 pl-3">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
