@@ -2,7 +2,6 @@ const ROUTE_TEMPLATES = require("../data/routeTemplates");
 const { getDistance } = require("../services/mapService");
 const { isTemplateValid } = require("../utils/routeFilters");
 
-// Define average speeds (km/h) for each mode
 const SPEEDS = {
   WALK: 5,
   AUTO: 25,
@@ -13,8 +12,6 @@ const SPEEDS = {
   TRAIN: 60,
   PLANE: 600
 };
-
-// Define rates (₹ per km) for each mode
 const RATES = {
   WALK: 0,
   AUTO: 12,
