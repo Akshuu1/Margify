@@ -128,8 +128,7 @@ exports.planRoute = async (req, res) => {
         r.tag = i < 2 ? "Best" : "Alternative"
       }
     })
-    const finalRoutes = enrichedRoutes.slice(0, 5)
-
+    const finalRoutes = enrichedRoutes.slice(0, 7)
     res.status(200).json({
       distanceKm,
       totalOptions: finalRoutes.length,
