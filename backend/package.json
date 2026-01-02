@@ -12,6 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.4.2",
     "@mapbox/mapbox-sdk": "^0.16.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",

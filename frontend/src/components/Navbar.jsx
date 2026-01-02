@@ -7,7 +7,7 @@ export const Navbar = () => {
     const name = user ? user.name : "Guest"
     const navigate = useNavigate()
     const location = useLocation()
-    if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname==='/') {
+    if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/') {
         return null;
     }
     return (

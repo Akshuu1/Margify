@@ -61,11 +61,11 @@ export function RoutesPage() {
           {source.name}
         </div>
         <div className="flex items-center gap-4">
-        <div className="w-[10rem] h-[3px] bg-[#111111]"></div>
+          <div className="w-[10rem] h-[3px] bg-[#111111]"></div>
           <span>Found {routes.length} routes</span>
           <div className="flex items-center ">
-          <div className="h-[3px] w-[6rem] bg-[#111111]"></div>
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path d="M0 12H14M9 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+            <div className="h-[3px] w-[6rem] bg-[#111111]"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path d="M0 12H14M9 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" /></svg>
           </div>
         </div>
         <div className="bg-[#2f2f2f] text-center w-1/3 text-[#e0e0e0] px-[2rem] py-[1rem] rounded-xl">

@@ -63,19 +63,18 @@ exports.planRoute = async (req, res) => {
     const fromCity = extractCity(from.name)
     const toCity = extractCity(to.name)
 
-    // Find real transit hubs near start and end
     const [fromHubs, toHubs] = await Promise.all([
       Promise.all([
         findNearestPOI(from, "airport", 100).catch(() => null),
-        findNearestPOI(from, "railway station", 40).catch(() => null), // Increased to 40km
-        findNearestPOI(from, "metro", 25).catch(() => null), // Simplified query
-        findNearestPOI(from, "bus stand", 30).catch(() => null),
+        findNearestPOI(from, "railway station", 60).catch(() => null),
+        findNearestPOI(from, "metro station", 50).catch(() => null),
+        findNearestPOI(from, "bus station", 40).catch(() => null),
       ]),
       Promise.all([
         findNearestPOI(to, "airport", 100).catch(() => null),
-        findNearestPOI(to, "railway station", 40).catch(() => null),
-        findNearestPOI(to, "metro", 25).catch(() => null),
-        findNearestPOI(to, "bus stand", 30).catch(() => null),
+        findNearestPOI(to, "railway station", 60).catch(() => null),
+        findNearestPOI(to, "metro station", 50).catch(() => null),
+        findNearestPOI(to, "bus station", 40).catch(() => null),
       ])
     ])
 
@@ -98,12 +97,19 @@ exports.planRoute = async (req, res) => {
           const isFirstHub = i === 0 || (i > 0 && !transitModes.includes(modes[i - 1]))
           const isLastHub = i === modes.length - 1 || (i < modes.length - 1 && !transitModes.includes(modes[i + 1]))
 
-          if (isFirstHub && !hubs.from[mode]) return false
-          if (isLastHub && !hubs.to[mode]) return false
+          if (isFirstHub && !hubs.from[mode]) {
+            // console.log(`Rejected ${modes.join('-')}: No start hub for ${mode}`)
+            return false
+          }
+          if (isLastHub && !hubs.to[mode]) {
+            // console.log(`Rejected ${modes.join('-')}: No end hub for ${mode}`)
+            return false
+          }
         }
       }
       return true
     })
+    console.log(`Valid Routes after filter: ${validRoutes.length}/${rawTemplates.length}`)
 
     const enrichedRoutes = await Promise.all(validRoutes.map(async (modes, index) => {
       let totalTimeMin = 0
@@ -145,25 +151,51 @@ exports.planRoute = async (req, res) => {
         totalCost += cost
 
         let nextLocation = toCity
+        let lineInfo = null
+
         if (i < modes.length - 1) {
           const nextMode = modes[i + 1]
           if (transitModes.includes(nextMode)) {
-            nextLocation = hubs.from[nextMode]?.name || formatStopName(nextMode, fromCity)
+            const hub = hubs.from[nextMode]
+            nextLocation = hub?.name || formatStopName(nextMode, fromCity)
+            if (hub) {
+              lineInfo = {
+                lineName: hub.lineName,
+                lineColor: hub.lineColor,
+                stationCode: hub.stationCode
+              }
+            }
           } else if (transitModes.includes(mode)) {
-            nextLocation = hubs.to[mode]?.name || formatStopName(mode, toCity)
+            const hub = hubs.to[mode]
+            nextLocation = hub?.name || formatStopName(mode, toCity)
+            if (hub) {
+              lineInfo = {
+                lineName: hub.lineName,
+                lineColor: hub.lineColor,
+                stationCode: hub.stationCode
+              }
+            }
           } else {
             nextLocation = formatStopName(nextMode, i === 0 ? fromCity : toCity)
           }
         }
 
-        segments.push({
+        const segment = {
           mode,
           from: currentLocation,
           to: nextLocation,
           duration: time,
           cost: cost,
           distance: segmentDist.toFixed(1)
-        })
+        }
+
+        if (lineInfo) {
+          segment.lineName = lineInfo.lineName
+          segment.lineColor = lineInfo.lineColor
+          segment.stationCode = lineInfo.stationCode
+        }
+
+        segments.push(segment)
         currentLocation = nextLocation
       })
       if (modes.length > 1) {
@@ -202,7 +234,7 @@ exports.planRoute = async (req, res) => {
         r.tag = i < 2 ? "Best" : "Alternative"
       }
     })
-    const finalRoutes = enrichedRoutes.slice(0, 5)
+    const finalRoutes = enrichedRoutes.slice(0, 8)
     res.status(200).json({
       distanceKm,
       totalOptions: finalRoutes.length,
