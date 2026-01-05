@@ -11,6 +11,10 @@ exports.planRoute = async (req, res) => {
     const { from, to } = req.body
     console.log("Received Route Request:", { from, to })
 
+    if (!from || !from.lat || !from.lng || !to || !to.lat || !to.lng) {
+      return res.status(400).json({ message: "Invalid Source or Destination coordinates" });
+    }
+
     const globalMetrics = await getRouteMetrics(from, to, 'DRIVE')
     const distanceKm = globalMetrics.distanceKm
 
@@ -39,9 +43,10 @@ exports.planRoute = async (req, res) => {
 
     console.log(`Valid Routes: ${validRoutes.length}/${rawTemplates.length}`)
 
+    const metricsCache = new Map() // Cache for this request
     const enrichedRoutes = await Promise.all(
       validRoutes.map((modes, index) =>
-        enrichRoute(modes, index, hubs, fromCity, toCity, from, to)
+        enrichRoute(modes, index, hubs, fromCity, toCity, from, to, metricsCache)
       )
     )
 

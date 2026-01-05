@@ -8,8 +8,8 @@ const signup = async (req, res) => {
         if (!name) {
             return res.status(400).json({ message: "Enter Name" })
         }
-        if (!email || !email.includes('@') || !email.endsWith('.com')) {
-            return res.status(400).json({ message: "Enter Email" })
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ message: "Invalid email format" })
         }
         if (!password) {
             return res.status(400).json({ message: "Enter Password" })

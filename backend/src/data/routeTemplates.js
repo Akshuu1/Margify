@@ -13,8 +13,6 @@ const ROUTE_TEMPLATES = [
   ["AUTO", "METRO", "WALK"],
   ["CAB", "METRO", "CAB"],
   ["BIKE", "METRO", "BIKE"],
-
-  // Medium Distance / City-to-City or Suburban
   ["AUTO", "TRAIN", "AUTO"],
   ["CAB", "TRAIN", "CAB"],
   ["WALK", "TRAIN", "WALK"],
@@ -22,18 +20,14 @@ const ROUTE_TEMPLATES = [
   ["WALK", "TRAIN", "AUTO"],
   ["BIKE", "TRAIN", "BIKE"],
   ["BUS", "TRAIN", "BUS"],
-
-  // Complex Urban Transit
   ["AUTO", "METRO", "BUS", "WALK"],
   ["WALK", "BUS", "METRO", "AUTO"],
   ["CAB", "METRO", "BUS", "CAB"],
-
-  // Long Distance / National
   ["AUTO", "PLANE", "AUTO"],
   ["CAB", "PLANE", "CAB"],
   ["BUS", "PLANE", "BUS"],
-  ["AUTO", "TRAIN", "TRAIN", "AUTO"], // Multi-leg train
-  ["CAB", "PLANE", "TRAIN", "CAB"], // Flight + Train
-];
+  ["AUTO", "TRAIN", "TRAIN", "AUTO"], 
+  ["CAB", "PLANE", "TRAIN", "CAB"],
+]
 
-module.exports = ROUTE_TEMPLATES;
+module.exports = ROUTE_TEMPLATES

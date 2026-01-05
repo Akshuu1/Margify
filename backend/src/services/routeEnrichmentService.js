@@ -7,7 +7,7 @@ const formatStopName = (mode, cityName, poiName) => {
     return `${cityName} ${mode.charAt(0) + mode.slice(1).toLowerCase()} Stop`;
 };
 
-async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc) {
+async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc, metricsCache = new Map()) {
     let totalTimeMin = 0;
     let totalCost = 0;
     let currentLocation = fromCity;
@@ -44,7 +44,15 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc)
             }
         }
 
-        const metrics = await getRouteMetrics(lastCoords, nextCoords, mode);
+        const cacheKey = `${lastCoords.lat},${lastCoords.lng}-${nextCoords.lat},${nextCoords.lng}-${mode}`;
+        let metrics;
+        if (metricsCache.has(cacheKey)) {
+            metrics = await metricsCache.get(cacheKey); // Await the promise
+        } else {
+            const metricsPromise = getRouteMetrics(lastCoords, nextCoords, mode);
+            metricsCache.set(cacheKey, metricsPromise);
+            metrics = await metricsPromise;
+        }
 
         const rate = RATES[mode] || 10;
         const base = BASE_FARES[mode] || 0;
