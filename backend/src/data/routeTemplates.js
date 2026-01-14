@@ -19,15 +19,12 @@ const ROUTE_TEMPLATES = [
   ["AUTO", "TRAIN", "WALK"],
   ["WALK", "TRAIN", "AUTO"],
   ["BIKE", "TRAIN", "BIKE"],
-  ["BUS", "TRAIN", "BUS"],
   ["AUTO", "METRO", "BUS", "WALK"],
   ["WALK", "BUS", "METRO", "AUTO"],
-  ["CAB", "METRO", "BUS", "CAB"],
   ["AUTO", "PLANE", "AUTO"],
   ["CAB", "PLANE", "CAB"],
   ["BUS", "PLANE", "BUS"],
   ["AUTO", "TRAIN", "TRAIN", "AUTO"], 
-  ["CAB", "PLANE", "TRAIN", "CAB"],
 ]
 
 module.exports = ROUTE_TEMPLATES
