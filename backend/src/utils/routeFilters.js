@@ -9,8 +9,8 @@ function isTemplateValid(template, distanceKm, weatherCondition = 'Clear') {
         return false;
     }
 
-    // Filter auto/rickshaw for very long distances > 30km
-    if (template.includes('AUTO') && distanceKm > 30) {
+    // Filter auto/rickshaw for long distances > 50km
+    if (template.includes('AUTO') && distanceKm > 50) {
         return false;
     }
 
@@ -19,8 +19,8 @@ function isTemplateValid(template, distanceKm, weatherCondition = 'Clear') {
         return false;
     }
 
-    // Filter plane for short distances < 200km
-    if (template.includes('PLANE') && distanceKm < 200) {
+    // Filter plane for short distances < 500km
+    if (template.includes('PLANE') && distanceKm < 500) {
         return false;
     }
 

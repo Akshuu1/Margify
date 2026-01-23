@@ -8,7 +8,14 @@ export const getProfile = async () => {
         }
     })
 
-    return res.json()
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        return res.json()
+    } else {
+        const text = await res.text();
+        console.error("Profile Error:", text);
+        return { error: "Failed to load profile (Non-JSON response)" };
+    }
 }
 
 export const changePassword = async (oldPassword, newPassword) => {
@@ -22,5 +29,13 @@ export const changePassword = async (oldPassword, newPassword) => {
         body: JSON.stringify({ oldPassword, newPassword })
     })
 
-    return res.json()
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        return res.json()
+    } else {
+        const text = await res.text();
+        console.error("Change Password Error:", text);
+        return { error: res.status === 404 ? "Endpoint not found (404). Please restart backend." : "Failed to change password" };
+    }
 }
+

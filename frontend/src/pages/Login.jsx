@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { loginUser } from "../services/auth"
 import { useState, useEffect } from "react"
 
@@ -48,9 +48,9 @@ export function Login() {
               <label className="text-[0.75rem] ml-2 mb-1">Password</label>
               <input minLength="6" onChange={(e) => setPassword(e.target.value)} value={password} type="password" placeholder="Enter your Password" required className="w-full bg-[#2F2F2F] rounded-xl p-3 text-sm focus:outline-none" />
             </div>
-            <a href="#" className="text-[0.7rem] ml-2 text-left block opacity-80 hover:opacity-100">
+            <Link to="/forgot-password" size="sm" className="text-[0.7rem] ml-2 text-left block opacity-80 hover:text-[#FFCB74] transition-colors">
               Forgot your password?
-            </a>
+            </Link>
             <button type="submit" className="bg-[#FFCB74] w-full text-[#111111] rounded-xl py-2 text-sm font-medium hover:opacity-90 transition">
               Find your path
             </button>

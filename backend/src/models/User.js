@@ -18,7 +18,9 @@ const User = new mongoose.Schema(
         carbonStats: {
             type: Object,
             default: { totalSaved: 0, badges: [] }
-        }
+        },
+        resetPasswordToken: String,
+        resetPasswordExpires: Date
     },
     { timestamps: true }
 )

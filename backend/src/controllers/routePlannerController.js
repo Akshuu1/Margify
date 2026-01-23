@@ -50,12 +50,23 @@ exports.planRoute = async (req, res) => {
 
     // 1. Identify Major Hubs for Long Distance (Fix for Sonipat -> Mussoorie)
     if (distanceKm > 150) {
-      console.log("Long distance route detected. Searching for Major ISBTs...");
-      const majorBusHub = await findNearestPOI(from, "ISBT", 60); // Check 60km radius for ISBT
+      console.log(`Inter-city journey (${distanceKm.toFixed(1)}km). Checking for major transit terminals...`);
 
-      if (majorBusHub && majorBusHub.name !== hubs.from.BUS?.name) {
-        console.log(`Found Major ISBT: ${majorBusHub.name}. Overriding local bus hub.`);
-        hubs.from.BUS = majorBusHub; // Force usage of Major Hub (e.g., Kashmiri Gate)
+      // Try searching for ISBT specifically
+      let majorBusHub = await findNearestPOI(from, "Interstate Bus Terminal", 60);
+      if (!majorBusHub) majorBusHub = await findNearestPOI(from, "ISBT", 60);
+
+      // If we are near Delhi (like Sonipat), explicitly look for Kashmiri Gate if generic ones fail
+      if (!majorBusHub && distanceKm > 200) {
+        majorBusHub = await findNearestPOI(from, "Maharana Pratap ISBT Kashmiri Gate", 70);
+      }
+
+      if (majorBusHub) {
+        const currentHubName = hubs.from.BUS?.name || "none";
+        if (majorBusHub.name !== currentHubName) {
+          console.log(`Major Terminal Found: "${majorBusHub.name}" (Replacing local stand: "${currentHubName}")`);
+          hubs.from.BUS = majorBusHub;
+        }
       }
     }
 

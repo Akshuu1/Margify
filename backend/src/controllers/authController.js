@@ -70,4 +70,84 @@ const login = async (req, res) => {
     }
 }
 
-module.exports = { signup, login }
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        console.log(`[AUTH] Forgot password request for: ${email}`);
+        if (!email) return res.status(400).json({ message: "Email is required" });
+
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        user.resetPasswordToken = otp;
+        user.resetPasswordExpires = Date.now() + 600000; // 10 minutes
+        await user.save();
+
+        console.log(`\n========================================`);
+        console.log(`PASSWORD RESET OTP FOR ${email}: ${otp}`);
+        console.log(`========================================\n`);
+
+        res.json({ message: "Reset code sent to console. Check server logs." });
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: otp,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired reset code" });
+        }
+
+        const hashedPass = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPass;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: "Password reset successful" });
+    } catch (error) {
+        console.error("Reset Password Error:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const userId = req.user.id; // From secure middleware
+        console.log(`[AUTH] Change password request for user ID: ${userId}`);
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) return res.status(400).json({ message: "Incorrect current password" });
+
+        const hashedPass = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPass;
+        await user.save();
+
+        res.json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+module.exports = { signup, login, forgotPassword, resetPassword, changePassword }

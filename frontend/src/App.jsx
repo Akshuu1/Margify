@@ -7,6 +7,8 @@ import { Signup } from './pages/SignUp'
 import { SearchLocation } from './pages/SearchLocation'
 import { RoutesPage } from './pages/RoutesPage'
 import { Profile } from './pages/Profile'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 
 import { SavedRoutes } from './pages/SavedRoutes'
@@ -25,6 +27,8 @@ function App() {
         <Route path='/search' element={<SearchLocation />} />
         <Route path='/routes' element={<RoutesPage />} />
         <Route path='/saved-routes' element={<SavedRoutes />} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   )
