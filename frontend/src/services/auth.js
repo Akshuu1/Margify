@@ -1,4 +1,4 @@
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+import { BACKEND_URL } from '../config';
 
 export const signupUser = async (data) => {
     try {
