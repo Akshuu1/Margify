@@ -42,7 +42,7 @@ async function getRouteMetrics(from, to, mode = 'DRIVE') {
 }
 
 const { extractTransitInfo } = require("../utils/transitUtils");
-async function findNearestPOI(location, query, maxDist = 50) {
+async function findNearestPOI(location, query, maxDist = 20) {
     try {
         const typeMap = {
             'metro': 'subway_station',

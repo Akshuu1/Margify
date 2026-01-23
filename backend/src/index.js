@@ -20,6 +20,11 @@ app.use(express.json())
 app.use("/api/auth", require("./routes/authRoutes"))
 app.use("/api/routes", require("./routes/routePlannerRoutes"))
 app.use("/api/map", require("./routes/mapRoutes"))
+app.use("/api/saved-routes", require("./routes/savedRoutesRoutes"))
+// app.use("/api/commute", require("./routes/commuteRoutes"))
+// app.use("/api/crowd", require("./routes/crowdRoutes"))
+// app.use("/api/accessibility", require("./routes/accessibilityRoutes"))
+// app.use("/api/journey", require("./routes/journeyShareRoutes"))
 
 app.get("/", (req, res) => {
   res.send("Server Working")

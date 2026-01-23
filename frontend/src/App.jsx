@@ -7,6 +7,9 @@ import { Signup } from './pages/SignUp'
 import { SearchLocation } from './pages/SearchLocation'
 import { RoutesPage } from './pages/RoutesPage'
 import { Profile } from './pages/Profile'
+
+
+import { SavedRoutes } from './pages/SavedRoutes'
 import { Navbar } from './components/Navbar'
 
 function App() {
@@ -21,8 +24,9 @@ function App() {
         <Route path='/signup' element={<Signup />} />
         <Route path='/search' element={<SearchLocation />} />
         <Route path='/routes' element={<RoutesPage />} />
+        <Route path='/saved-routes' element={<SavedRoutes />} />
       </Routes>
-    </ BrowserRouter>
+    </BrowserRouter>
   )
 }
 export default App

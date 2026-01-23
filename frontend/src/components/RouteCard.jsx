@@ -1,8 +1,42 @@
 import { TimelineSegment } from "./TimelineSegment"
 import { formatDuration, formatCurrency } from "../utils/format"
+// Carbon display removed as per user request
+// import CarbonDisplay from "./CarbonDisplay"
+import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage } from "lucide-react"
+import { useState } from "react"
+import { saveRouteOption } from "../services/savedRoutesApi"
 
-export function RouteCard({ route }) {
+export function RouteCard({ route, source, destination }) {
   const segments = route.segments || []
+  const [isBookmarked, setIsBookmarked] = useState(false)
+
+  const handleSaveOption = async (e) => {
+    e.stopPropagation();
+    if (isBookmarked) return;
+
+    const name = prompt("Name this route option:", `${route.tag || 'Best'} Option`);
+    if (!name) return;
+
+    try {
+      await saveRouteOption({
+        routeName: name,
+        source: {
+          address: source.name,
+          coordinates: { lat: source.lat, lng: source.lng }
+        },
+        destination: {
+          address: destination.name,
+          coordinates: { lat: destination.lat, lng: destination.lng }
+        },
+        route: route
+      });
+      setIsBookmarked(true);
+      alert('Specific route option saved!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save route option');
+    }
+  };
 
 
   const TAG_STYLES = {
@@ -13,17 +47,71 @@ export function RouteCard({ route }) {
     Alternative: "bg-[#cba880] text-[#e0e0e0] border border-white/10",
   }
 
+  const VIBE_STYLES = {
+    Scenic: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+    Social: "bg-pink-500/20 text-pink-300 border-pink-500/30",
+    Quiet: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+    Efficient: "bg-amber-500/20 text-amber-300 border-amber-500/30"
+  }
+
   const tagClass =
     TAG_STYLES[route.tag] || "bg-[#2f2f2f] text-[#e0e0e0]"
 
   return (
-    <div className="bg-[#2f2f2f] rounded-2xl p-[1.5rem] w-[93.6vw] max-w-[93.6vw] flex flex-col justify-between h-auto">
+    <div className="bg-[#2f2f2f] rounded-2xl p-[1.5rem] w-full flex flex-col justify-between h-auto border border-white/5 hover:border-white/10 transition-all shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        {route.tag && (
-          <span className={`${tagClass} px-4 py-1 rounded-full text-sm font-medium`}>
-            {route.tag}
-          </span>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {route.tag && (
+            <span className={`${tagClass} px-4 py-1 rounded-full text-sm font-medium`}>
+              {route.tag}
+            </span>
+          )}
+
+          {route.vibe && (
+            <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${VIBE_STYLES[route.vibe] || VIBE_STYLES.Efficient}`}>
+              <Sparkles size={12} />
+              {route.vibe} Vibe
+            </span>
+          )}
+
+          {/* Accessibility features commented out as per user request */}
+          {/* {route.isLuggageFriendly && (
+            <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-purple-500/20 text-purple-300 border-purple-500/30">
+              <Luggage size={12} />
+              Luggage Friendly
+            </span>
+          )} */}
+
+          {route.crowdDensity && (
+            <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${route.crowdDensity === 'high' ? 'bg-red-500/20 text-red-300 border-red-500/30' :
+              route.crowdDensity === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
+                'bg-green-500/20 text-green-300 border-green-500/30'
+              }`}>
+              <Users size={12} />
+              {route.crowdDensity === 'high' ? 'Busy' :
+                route.crowdDensity === 'medium' ? 'Moderate' : 'Quiet'}
+            </span>
+          )}
+
+          {route.safetyScore && (
+            <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${route.safetyScore >= 90 ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
+              route.safetyScore >= 70 ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
+                'bg-orange-500/20 text-orange-300 border-orange-500/30'
+              }`}>
+              <Shield size={12} />
+              {route.safetyScore}% Safe
+            </span>
+          )}
+
+          {/* {route.isWheelchairAccessible && (
+            <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-blue-500/20 text-blue-300 border-blue-500/30" title="Wheelchair Accessible">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="4" r="2" /><path d="m3 22 5-6" /><path d="m21 6-5 6" /><path d="m11 11 5 6" /><path d="m11 15 4 7" />
+              </svg>
+              Accessible
+            </span>
+          )} */}
+        </div>
       </div>
       <div className="flex flex-col gap-1 flex-1">
         {segments.map((segment, index) => (
@@ -50,6 +138,17 @@ export function RouteCard({ route }) {
             <path fill="currentColor" d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3M21 9l-3.99-4v3H10v2h7.01v3L21 9" />
           </svg>
           {route.transfers} Transfers
+        </div>
+
+
+        <div className="flex items-center gap-2 ml-2">
+          <button
+            onClick={handleSaveOption}
+            className="p-2 bg-black/10 rounded-lg hover:bg-black/20 transition-colors"
+            title="Bookmark Specific Route"
+          >
+            {isBookmarked ? <Bookmark size={16} fill="currentColor" /> : <BookmarkPlus size={16} />}
+          </button>
         </div>
 
       </div>

@@ -3,6 +3,10 @@ const { getRouteMetrics } = require("../services/mapService")
 const { isTemplateValid } = require("../utils/routeFilters")
 const { findTransitHubs } = require("../services/transitHubService")
 const { enrichRoute } = require("../services/routeEnrichmentService")
+const { getWeatherForLocation, adjustRoutesForWeather } = require("../services/weatherService")
+// Carbon features removed as per user request
+// const { addEmissionsToRoutes, getEcoFriendlyRoute } = require("../services/carbonService")
+const { getNearbyTouristPlaces } = require("../services/touristPlacesService")
 
 const extractCity = (address) => address ? address.split(',')[0].trim() : "Unknown City";
 
@@ -60,15 +64,72 @@ exports.planRoute = async (req, res) => {
       if (match && match.tag !== "Fastest") match.tag = "Cheapest"
     }
 
+    // Get weather data for BOTH source and destination
+    let weatherData = null
+    try {
+      const sourceWeather = await getWeatherForLocation(from.lat, from.lng)
+      const destWeather = await getWeatherForLocation(to.lat, to.lng)
+
+      // Structure weather data properly for frontend
+      weatherData = {
+        source: {
+          current: sourceWeather,
+          location: from.name || 'Source',
+          impact: 'low',
+          message: 'Weather conditions are good for travel'
+        },
+        destination: {
+          current: destWeather,
+          location: to.name || 'Destination',
+          impact: 'low',
+          message: 'Weather conditions are good'
+        }
+      }
+    } catch (error) {
+      console.error("Weather fetch error:", error)
+    }
+
+    // 2. Add basic tags to routes
     enrichedRoutes.forEach((r, i) => {
       if (!r.tag) r.tag = i < 2 ? "Best" : "Alternative"
     })
 
-    const finalRoutes = enrichedRoutes.slice(0, 5)
+    // Apply weather impact adjustments if needed
+    let processedRoutes = enrichedRoutes;
+    if (weatherData && weatherData.source && weatherData.source.current) {
+      processedRoutes = adjustRoutesForWeather(enrichedRoutes, weatherData.source.current)
+      // Update weather impact based on route adjustments
+      const hasHighImpact = processedRoutes.some(r => r.weather && r.weather.impact === 'high')
+      if (hasHighImpact) {
+        weatherData.source.impact = 'high'
+        weatherData.source.message = processedRoutes[0].weather?.message || 'Weather may affect some routes'
+      }
+    }
+
+
+    // ALWAYS fetch tourist places - this is a key feature
+    // Search near DESTINATION for better results (e.g., if going to Delhi, show Delhi attractions)
+    let touristPlaces = [];
+    try {
+      // Use destination coordinates for better results
+      const searchLat = to.lat;
+      const searchLng = to.lng;
+      touristPlaces = await getNearbyTouristPlaces(searchLat, searchLng, 15000);
+      console.log(`Fetched ${touristPlaces.length} tourist places near destination: ${to.name || 'destination'}`);
+    } catch (error) {
+      console.error('Error fetching tourist places:', error);
+      // Even on error, return empty array to avoid breaking the UI
+      touristPlaces = [];
+    }
+
+    const finalRoutes = processedRoutes.slice(0, 5);
     res.status(200).json({
       distanceKm,
-      totalOptions: finalRoutes.length,
+      totalOptions: processedRoutes.length,
       routes: finalRoutes,
+      weather: weatherData,
+      touristPlaces: touristPlaces,
+      alerts: touristPlaces.length === 0 ? [{ message: 'No major tourist attractions found along this route' }] : []
     })
 
   } catch (err) {
