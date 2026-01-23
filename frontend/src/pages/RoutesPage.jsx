@@ -34,7 +34,7 @@ export function RoutesPage() {
           source,
           destination,
           localStorage.getItem("token"),
-          {} // Accessibility preferences removed
+          {}
         );
         setRoutes(data.routes || []);
         setDistance(data.distanceKm);
@@ -49,7 +49,7 @@ export function RoutesPage() {
     }
 
     fetchRoutes();
-  }, [source, destination]); // Removed accessibility dependencies
+  }, [source, destination]);
 
   const handleSaveRoute = async () => {
     if (isSaved) {
@@ -109,71 +109,80 @@ export function RoutesPage() {
 
   return (
     <div className="w-screen h-screen flex flex-col text-[#e0e0e0] overflow-hidden" style={{ fontFamily: "Space Grotesk" }}>
-      {/* Fixed Header - Responsive */}
-      <div className="px-4 sm:px-6 md:px-12 lg:px-16 py-4 sm:py-6 md:py-8 flex-shrink-0">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[4rem] text-center mb-4 sm:mb-6 md:mb-8">Margify</h1>
-        <div className="bg-[#FFCB74] rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between text-[#111111] gap-3 sm:gap-0">
-          <div className="bg-[#2f2f2f] text-center w-full sm:w-1/3 text-[#e0e0e0] px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-xl text-sm sm:text-base truncate">
-            {source.name}
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm md:text-base">
-            <div className="hidden sm:block w-8 md:w-[10rem] h-[2px] md:h-[3px] bg-[#111111]"></div>
-            <span className="whitespace-nowrap">Found {routes.length} routes</span>
-            <div className="flex items-center">
-              <div className="h-[2px] md:h-[3px] w-4 md:w-[6rem] bg-[#111111]"></div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 12H14M9 7l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" /></svg>
-            </div>
-          </div>
-          <div className="bg-[#2f2f2f] text-center w-full sm:w-1/3 text-[#e0e0e0] px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-xl text-sm sm:text-base truncate">
-            {destination.name}
-          </div>
+      <div className="px-4.sm:px-6 md:px-12 lg:px-16 py-6 flex-shrink-0">
+        <h1 className="text-3xl font-[Kiona-Regular] sm:text-4xl md:text-5xl lg:text-[4rem] text-center mb-6 font-bold tracking-tight">Margify</h1>
 
-          <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-start">
-            <button
-              onClick={() => window.location.href = '/search'}
-              className="px-3 sm:px-4 py-2 sm:py-3 bg-[#2f2f2f] rounded-xl hover:bg-[#3f3f3f] transition-colors text-[#e0e0e0] font-medium flex items-center gap-2 text-xs sm:text-sm"
-              title="Change locations"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="1 4 1 10 7 10"></polyline>
-                <polyline points="23 20 23 14 17 14"></polyline>
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
-              </svg>
-              <span className="hidden md:inline">Change</span>
-            </button>
-            {touristPlaces.length > 0 && (
+        <div className="bg-[#FFCB74] rounded-2xl p-4 text-[#111111] shadow-xl">
+          <div className="flex flex-col xl:flex-row items-center gap-4 xl:gap-8">
+
+            {/* Route Info Section - Takes more space */}
+            <div className="w-full xl:flex-1 flex flex-col md:flex-row items-stretch md:items-center gap-4">
+              {/* Source */}
+              <div className="flex-1 bg-[#2f2f2f] text-[#e0e0e0] px-6 py-4 rounded-xl text-center shadow-inner min-w-[200px] flex items-center justify-center">
+                <span className="truncate font-medium text-lg">{source.name}</span>
+              </div>
+
+              {/* Arrow / Info */}
+              <div className="flex flex-col items-center gap-1 shrink-0 px-2 justify-center">
+                <div className="hidden md:flex items-center gap-2 text-sm font-bold opacity-80 whitespace-nowrap">
+                  <span>{routes.length} ROUTES</span>
+                </div>
+                <div className="flex items-center text-[#111111]">
+                  <div className="h-[2px] w-8 md:w-24 bg-current"></div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter"><path d="m12 5 7 7-7 7" /><path d="M19 12H5" /></svg>
+                  <div className="h-[2px] w-8 md:w-24 bg-current"></div>
+                </div>
+              </div>
+
+              {/* Destination */}
+              <div className="flex-1 bg-[#2f2f2f] text-[#e0e0e0] px-6 py-4 rounded-xl text-center shadow-inner min-w-[200px] flex items-center justify-center">
+                <span className="truncate font-medium text-lg">{destination.name}</span>
+              </div>
+            </div>
+
+            {/* Actions Section - Fixed width or flex wrap */}
+            <div className="w-full xl:w-auto flex flex-wrap items-center justify-center xl:justify-end gap-3 shrink-0">
               <button
-                onClick={() => setShowTouristPlaces(!showTouristPlaces)}
-                className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all font-medium flex items-center gap-2 text-xs sm:text-sm ${showTouristPlaces
-                  ? 'bg-[#111111] text-[#FFCB74]'
-                  : 'bg-[#2f2f2f] text-[#e0e0e0] hover:bg-[#3f3f3f]'
+                onClick={() => window.location.href = '/search'}
+                className="flex-1 sm:flex-none px-5 py-3 bg-[#1c1c1c] rounded-xl hover:bg-[#2f2f2f] transition-all text-[#e0e0e0] font-bold flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap min-w-[120px]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m16 16-4-4-4 4" /></svg>
+                <span>Change</span>
+              </button>
+
+              {touristPlaces.length > 0 && (
+                <button
+                  onClick={() => setShowTouristPlaces(!showTouristPlaces)}
+                  className={`flex-1 sm:flex-none px-5 py-3 rounded-xl transition-all font-bold flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap min-w-[140px] ${showTouristPlaces
+                    ? 'bg-[#111111] text-[#FFCB74]'
+                    : 'bg-[#1c1c1c] text-[#e0e0e0] hover:bg-[#2f2f2f]'
+                    }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>Tourist Places</span>
+                </button>
+              )}
+
+              <button
+                onClick={handleSaveRoute}
+                disabled={isSaved}
+                className={`flex-1 sm:flex-none px-5 py-3 rounded-xl transition-all font-bold flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg active:scale-95 whitespace-nowrap min-w-[100px] ${isSaved
+                  ? 'bg-[#1c1c1c] text-green-400 cursor-not-allowed'
+                  : 'bg-[#1c1c1c] text-[#e0e0e0] hover:bg-[#2f2f2f]'
                   }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span className="hidden sm:inline">Tourist Places ({touristPlaces.length})</span>
-                <span className="sm:hidden">Places ({touristPlaces.length})</span>
+                {isSaved ? <BookmarkCheck className="text-green-400" size={18} /> : <Bookmark size={18} />}
+                <span>{isSaved ? 'Saved' : 'Save'}</span>
               </button>
-            )}
-            <button
-              onClick={handleSaveRoute}
-              disabled={isSaved}
-              className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-colors font-medium flex items-center gap-2 text-xs sm:text-sm ${isSaved
-                ? 'bg-[#1c1c1c] text-green-400 cursor-not-allowed'
-                : 'bg-[#2f2f2f] text-[#e0e0e0] hover:bg-[#3f3f3f]'
-                }`}
-              title={isSaved ? "Route saved" : "Save this search"}
-            >
-              {isSaved ? <BookmarkCheck className="text-green-400" size={16} /> : <Bookmark size={16} />}
-              <span className="hidden sm:inline">{isSaved ? 'Saved' : 'Save'}</span>
-            </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Scrollable Content - Fully Responsive */}
+
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-12 lg:px-16 pb-8 sm:pb-12 md:pb-16 scroll-smooth">
         <div className="flex flex-col gap-3 sm:gap-4">
           {weather && (
@@ -198,19 +207,21 @@ export function RoutesPage() {
       </div>
 
       {/* Tourist Places as Centered Popup */}
-      {showTouristPlaces && touristPlaces.length > 0 && (
-        <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowTouristPlaces(false)}
-        >
+      {
+        showTouristPlaces && touristPlaces.length > 0 && (
           <div
-            className="bg-[#1c1c1c] rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-hidden border border-[#FFCB74]/30 shadow-2xl shadow-[#FFCB74]/20"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowTouristPlaces(false)}
           >
-            <TouristPlaces places={touristPlaces} onClose={() => setShowTouristPlaces(false)} />
+            <div
+              className="bg-[#1c1c1c] rounded-2xl max-w-6xl w-full max-h-[85vh] overflow-hidden border border-[#FFCB74]/30 shadow-2xl shadow-[#FFCB74]/20"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <TouristPlaces places={touristPlaces} onClose={() => setShowTouristPlaces(false)} />
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

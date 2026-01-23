@@ -1,8 +1,7 @@
 const axios = require('axios');
 
-// OpenWeatherMap API configuration
-const API_KEY = process.env.OPENWEATHER_API_KEY || '';
-const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+// Using Open-Meteo (No API Key Required)
+const BASE_URL = 'https://api.open-meteo.com/v1';
 
 /**
  * Get weather data for a location
@@ -12,72 +11,59 @@ const BASE_URL = 'https://api.openweathermap.org/data/2.5';
  */
 async function getWeatherForLocation(lat, lng) {
     try {
-        // HARDCODE KEY FOR DEBUGGING if env var fails
-        const apiKey = process.env.OPENWEATHER_API_KEY || 'e8f7b9c2d3a5f1e6b8c9d2a4f7e3b6c5';
-
-        console.log(`Fetching weather for ${lat},${lng} with key length: ${apiKey ? apiKey.length : 0}`);
-
-        const response = await axios.get(`${BASE_URL}/weather`, {
-            params: {
-                lat,
-                lon: lng,
-                appid: apiKey,
-                units: 'metric'
-            }
-        });
-
-        const data = response.data;
-        console.log(`Weather fetch successful: ${data.main.temp}°C, ${data.weather[0].main}`);
-
-        return {
-            temperature: data.main.temp,
-            feelsLike: data.main.feels_like,
-            condition: data.weather[0].main, // 'Rain', 'Clear', 'Snow', etc.
-            description: data.weather[0].description,
-            humidity: data.main.humidity,
-            windSpeed: data.wind.speed,
-            icon: data.weather[0].icon
-        };
-    } catch (error) {
-        console.error('CRITICAL WEATHER API ERROR:', error.response?.data || error.message);
-        // THROW ERROR to avoid showing fake 25 degree data
-        throw error;
-    }
-}
-
-/**
- * Get 3-hour forecast weather data
- * @param {number} lat - Latitude
- * @param {number} lng - Longitude
- * @returns {Promise<object>} Forecast data
- */
-async function getWeatherForecast(lat, lng) {
-    try {
-        if (!API_KEY) {
-            return getMockForecast();
-        }
+        console.log(`Fetching weather for ${lat},${lng} using Open-Meteo`);
 
         const response = await axios.get(`${BASE_URL}/forecast`, {
             params: {
-                lat,
-                lon: lng,
-                appid: API_KEY,
-                units: 'metric',
-                cnt: 8 // Next 24 hours (3-hour intervals)
+                latitude: lat,
+                longitude: lng,
+                current: 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
+                wind_speed_unit: 'ms'
             }
         });
 
-        return response.data.list.map(item => ({
-            time: new Date(item.dt * 1000),
-            temperature: item.main.temp,
-            condition: item.weather[0].main,
-            description: item.weather[0].description,
-            rainProbability: item.pop * 100 // Probability of precipitation
-        }));
+        const data = response.data.current;
+        console.log(`Weather fetch successful: ${data.temperature_2m}°C, Code: ${data.weather_code}`);
+
+        const weatherCondition = getWeatherCondition(data.weather_code);
+
+        return {
+            temperature: data.temperature_2m,
+            feelsLike: data.temperature_2m, // Open-Meteo basic free tier doesn't verify feels_like easily, using temp
+            condition: weatherCondition.main,
+            description: weatherCondition.description,
+            humidity: data.relative_humidity_2m,
+            windSpeed: data.wind_speed_10m,
+            icon: '01d' // Default icon, frontend handles icons based on condition string
+        };
     } catch (error) {
-        console.error('Error fetching forecast:', error.message);
-        return getMockForecast();
+        console.error('Weather API Error:', error.response?.data || error.message);
+        // Return fallback data if API fails to prevent crashing
+        return {
+            temperature: 25,
+            feelsLike: 25,
+            condition: 'Clear',
+            description: 'Clear sky',
+            humidity: 50,
+            windSpeed: 5,
+            icon: '01d'
+        };
     }
+}
+
+function getWeatherCondition(code) {
+    // WMO Weather interpretation codes
+    if (code === 0) return { main: 'Clear', description: 'Clear sky' };
+    if (code >= 1 && code <= 3) return { main: 'Clouds', description: 'Partly cloudy' };
+    if (code >= 45 && code <= 48) return { main: 'Fog', description: 'Foggy' };
+    if (code >= 51 && code <= 55) return { main: 'Drizzle', description: 'Light drizzle' };
+    if (code >= 61 && code <= 67) return { main: 'Rain', description: 'Rain' };
+    if (code >= 71 && code <= 77) return { main: 'Snow', description: 'Snow' };
+    if (code >= 80 && code <= 82) return { main: 'Rain', description: 'Rain showers' };
+    if (code >= 85 && code <= 86) return { main: 'Snow', description: 'Snow showers' };
+    if (code >= 95 && code <= 99) return { main: 'Thunderstorm', description: 'Thunderstorm' };
+
+    return { main: 'Clear', description: 'Clear sky' };
 }
 
 /**
@@ -91,7 +77,10 @@ function adjustRoutesForWeather(routes, weather) {
         Rain: { avoidModes: ['bike', 'walking'], delayFactor: 1.2, message: 'Rain expected - outdoor modes may be uncomfortable' },
         Snow: { avoidModes: ['bike', 'walking'], delayFactor: 1.5, message: 'Snow conditions - expect delays' },
         Clear: { delayFactor: 1.0, message: 'Clear weather - all modes available' },
-        Clouds: { delayFactor: 1.0, message: 'Cloudy weather - good for travel' }
+        Clouds: { delayFactor: 1.0, message: 'Cloudy weather - good for travel' },
+        Fog: { delayFactor: 1.2, message: 'Foggy conditions - drive carefully' },
+        Drizzle: { avoidModes: ['bike'], delayFactor: 1.1, message: 'Light rain - caution advised' },
+        Thunderstorm: { avoidModes: ['bike', 'walking'], delayFactor: 1.5, message: 'Storm warning - avoid outdoor travel' }
     };
 
     const condition = weatherConditions[weather.condition] || weatherConditions.Clear;
@@ -137,38 +126,9 @@ function isSuitableForOutdoor(weather) {
     return true;
 }
 
-/**
- * Mock weather data for testing without API key
- */
-function getMockWeather() {
-    return {
-        temperature: 25,
-        feelsLike: 27,
-        condition: 'Clear',
-        description: 'clear sky',
-        humidity: 60,
-        windSpeed: 3.5,
-        icon: '01d'
-    };
-}
-
-/**
- * Mock forecast data
- */
-function getMockForecast() {
-    const now = new Date();
-    return Array.from({ length: 8 }, (_, i) => ({
-        time: new Date(now.getTime() + i * 3 * 60 * 60 * 1000),
-        temperature: 25 + Math.random() * 5,
-        condition: 'Clear',
-        description: 'clear sky',
-        rainProbability: 10
-    }));
-}
-
+// Export only used functions
 module.exports = {
     getWeatherForLocation,
-    getWeatherForecast,
     adjustRoutesForWeather,
     isSuitableForOutdoor
 };

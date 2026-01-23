@@ -1,5 +1,5 @@
 const ROUTE_TEMPLATES = require("../data/routeTemplates")
-const { getRouteMetrics } = require("../services/mapService")
+const { getRouteMetrics, findNearestPOI } = require("../services/mapService")
 const { isTemplateValid } = require("../utils/routeFilters")
 const { findTransitHubs } = require("../services/transitHubService")
 const { enrichRoute } = require("../services/routeEnrichmentService")
@@ -46,6 +46,18 @@ exports.planRoute = async (req, res) => {
     })
 
     console.log(`Valid Routes: ${validRoutes.length}/${rawTemplates.length}`)
+
+
+    // 1. Identify Major Hubs for Long Distance (Fix for Sonipat -> Mussoorie)
+    if (distanceKm > 150) {
+      console.log("Long distance route detected. Searching for Major ISBTs...");
+      const majorBusHub = await findNearestPOI(from, "ISBT", 60); // Check 60km radius for ISBT
+
+      if (majorBusHub && majorBusHub.name !== hubs.from.BUS?.name) {
+        console.log(`Found Major ISBT: ${majorBusHub.name}. Overriding local bus hub.`);
+        hubs.from.BUS = majorBusHub; // Force usage of Major Hub (e.g., Kashmiri Gate)
+      }
+    }
 
     const metricsCache = new Map() // Cache for this request
     const enrichedRoutes = await Promise.all(
