@@ -9,13 +9,9 @@ import { RoutesPage } from './pages/RoutesPage'
 import { Profile } from './pages/Profile'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
-
-
 import { SavedRoutes } from './pages/SavedRoutes'
 import { Navbar } from './components/Navbar'
-
 function App() {
-
   return (
     <BrowserRouter>
       <Navbar />

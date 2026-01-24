@@ -1,171 +1,160 @@
-import React, { useEffect, useRef } from 'react';
-import { X, Navigation } from 'lucide-react';
-
-const MAP_V = "v3.1"; // Internal version for debugging
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Navigation, AlertTriangle } from 'lucide-react';
 
 const MapModal = ({ segments, onClose }) => {
     const mapRef = useRef(null);
+    const [error, setError] = useState(null);
     const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyC3rRX1hit3S23g5f8xNFMnPBhhxp-eBZE';
 
     useEffect(() => {
         let isMounted = true;
 
-        console.log(`[MapModal ${MAP_V}] Initializing map for ${segments.length} segments`);
-
-        const initMap = () => {
+        const initMap = async () => {
             if (!mapRef.current || !isMounted) return;
 
-            // Wait for window.google.maps to be ready
-            if (!window.google || !window.google.maps || !window.google.maps.Map) {
-                console.log(`[MapModal] Maps not fully loaded yet, waiting...`);
-                setTimeout(initMap, 200);
-                return;
-            }
-
             try {
-                // FORCE USE OF CONSTRUCTORS - NO importLibrary
-                const { Map, Marker, Polyline, LatLng, LatLngBounds } = window.google.maps;
+                // Use official 2024 loading pattern
+                const { Map } = await window.google.maps.importLibrary("maps");
+
+                let AdvancedMarkerElement, PinElement;
+                try {
+                    const markerLib = await window.google.maps.importLibrary("marker");
+                    AdvancedMarkerElement = markerLib.AdvancedMarkerElement;
+                    PinElement = markerLib.PinElement;
+                } catch (e) {
+                    console.warn("Advanced Markers unavailable.");
+                }
 
                 const map = new Map(mapRef.current, {
                     zoom: 12,
                     center: segments[0]?.fromCoords || { lat: 28.6139, lng: 77.2090 },
-                    styles: [
-                        { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                        { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-                        { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-                        { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-                        { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-                        { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-                        { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
-                        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] }
-                    ],
+                    mapId: "4504f990b864231",
                     disableDefaultUI: true,
                     zoomControl: true,
-                    mapTypeControl: false,
-                    streetViewControl: false
                 });
 
-                const bounds = new LatLngBounds();
-                const pathCoordinates = [];
+                // Correct Constructor Access
+                const bounds = new window.google.maps.LatLngBounds();
+                const directionsService = new window.google.maps.DirectionsService();
 
-                // ABSOLUTE FALLBACK: If segments somehow lost coordinates, use global context
-                const validSegments = segments.filter(s => s.fromCoords && s.toCoords);
+                const renderRoute = async () => {
+                    for (let idx = 0; idx < segments.length; idx++) {
+                        const seg = segments[idx];
+                        if (!seg.fromCoords || !seg.toCoords) continue;
 
-                if (validSegments.length === 0) {
-                    console.warn(`[MapModal] No segment coordinates found. Using route-level fallbacks.`);
-                    // Even if segments are empty, try to show the map area
-                    const fbFrom = segments[0]?.fromCoords || { lat: 28.6139, lng: 77.2090 };
-                    const fbTo = segments[segments.length - 1]?.toCoords || { lat: 28.5355, lng: 77.3910 };
-                    bounds.extend(fbFrom);
-                    bounds.extend(fbTo);
-                } else {
-                    validSegments.forEach((seg, idx) => {
-                        const fromPos = new LatLng(seg.fromCoords.lat, seg.fromCoords.lng);
-                        const toPos = new LatLng(seg.toCoords.lat, seg.toCoords.lng);
+                        const fromPos = { lat: parseFloat(seg.fromCoords.lat), lng: parseFloat(seg.fromCoords.lng) };
+                        const toPos = { lat: parseFloat(seg.toCoords.lat), lng: parseFloat(seg.toCoords.lng) };
 
-                        pathCoordinates.push(fromPos);
-                        if (idx === validSegments.length - 1) pathCoordinates.push(toPos);
+                        // 1. Unified Marker Logic
+                        if (AdvancedMarkerElement && PinElement) {
+                            try {
+                                const pin = new PinElement({
+                                    background: "#FFCB74",
+                                    borderColor: "#111111",
+                                    glyphText: (idx + 1).toString(),
+                                    glyphColor: "#111111",
+                                    scale: 0.8
+                                });
+                                new AdvancedMarkerElement({ position: fromPos, map, content: pin.element, title: seg.from });
+                            } catch (e) {
+                                new window.google.maps.Marker({ position: fromPos, map, label: (idx + 1).toString(), title: seg.from });
+                            }
+                        } else {
+                            new window.google.maps.Marker({ position: fromPos, map, label: (idx + 1).toString(), title: seg.from });
+                        }
 
-                        new Marker({
-                            position: fromPos,
-                            map,
-                            title: seg.from,
-                            label: { text: (idx + 1).toString(), color: 'white' }
-                        });
+                        // 2. Path Logic (Road vs Non-Road)
+                        const roadModes = ['CAB', 'AUTO', 'BUS', 'WALK', 'BIKE'];
+                        if (roadModes.includes(seg.mode)) {
+                            directionsService.route({
+                                origin: fromPos,
+                                destination: toPos,
+                                travelMode: window.google.maps.TravelMode.DRIVING
+                            }, (result, status) => {
+                                if (status === 'OK' && isMounted) {
+                                    new window.google.maps.DirectionsRenderer({
+                                        map,
+                                        directions: result,
+                                        suppressMarkers: true,
+                                        polylineOptions: { strokeColor: '#FFCB74', strokeWeight: 5, strokeOpacity: 0.8 }
+                                    });
+                                }
+                            });
+                        } else {
+                            new window.google.maps.Polyline({
+                                path: [fromPos, toPos],
+                                geodesic: true,
+                                strokeColor: seg.mode === 'PLANE' ? '#7db3ff' : '#FFCB74',
+                                strokeOpacity: 0.6,
+                                strokeWeight: 3,
+                                map
+                            });
+                        }
 
                         bounds.extend(fromPos);
                         bounds.extend(toPos);
-                    });
+                    }
+                    map.fitBounds(bounds);
+                };
 
-                    new Polyline({
-                        path: pathCoordinates,
-                        geodesic: true,
-                        strokeColor: '#FFCB74',
-                        strokeOpacity: 0.8,
-                        strokeWeight: 4,
-                        map: map
-                    });
-                }
+                renderRoute();
 
-                map.fitBounds(bounds);
-                console.log(`[MapModal] Map successfully rendered. Fallback used: ${validSegments.length === 0}`);
             } catch (err) {
-                console.error("[MapModal] Render Error:", err);
+                console.error("Map Error:", err);
+                if (err.message?.includes('ApiNotActivatedMapError')) {
+                    setError("Maps API not enabled. Activate in Cloud Console.");
+                }
             }
         };
 
         const loadScript = () => {
-            if (window.google?.maps?.Map) {
+            if (window.google?.maps?.importLibrary) {
                 initMap();
                 return;
             }
-
-            const existing = document.getElementById('google-maps-script');
-            if (existing) {
-                existing.addEventListener('load', initMap);
-                return;
-            }
-
             const script = document.createElement('script');
             script.id = 'google-maps-script';
-            // PURE LEGACY SRC - NO BORDERLINE FEATURES
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}`;
-            script.async = true;
-            script.defer = true;
-            script.onload = initMap;
-            script.onerror = () => console.error("[MapModal] Failed to load Google Maps script");
+            script.innerHTML = `(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src="https://maps."+c+"apis.com/maps/api/js?"+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key: "${GOOGLE_KEY}", v: "weekly"});`;
             document.head.appendChild(script);
+            const check = setInterval(() => { if (window.google?.maps?.importLibrary) { clearInterval(check); initMap(); } }, 200);
         };
 
         loadScript();
-
         return () => { isMounted = false; };
     }, [segments, GOOGLE_KEY]);
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="relative w-full max-w-5xl h-[80vh] bg-[#1c1c1c] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                {/* Header */}
-                <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10 bg-gradient-to-b from-[#111111]/80 to-transparent">
-                    <div>
-                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Navigation className="text-[#FFCB74]" size={20} />
-                            Journey Route
-                        </h3>
-                        <p className="text-xs text-white/60">{segments.length} segments visualized • {MAP_V}</p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 bg-black/40 hover:bg-red-500/80 rounded-full transition-all text-white backdrop-blur-md border border-white/10"
-                    >
-                        <X size={24} />
-                    </button>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <div className="relative w-full max-w-5xl h-[85vh] bg-[#1c1c1c] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+                {/* Close button - High Priority Positioning */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 z-[1010] p-3 bg-black/60 hover:bg-red-500/80 rounded-full transition-all text-white border border-white/20 active:scale-95"
+                >
+                    <X size={24} />
+                </button>
+
+                <div className="absolute top-0 left-0 p-6 z-10 bg-gradient-to-r from-[#111111]/80 to-transparent">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Navigation className="text-[#FFCB74]" size={20} />
+                        Journey Path
+                    </h3>
                 </div>
 
-                {/* Map Container */}
                 <div ref={mapRef} className="w-full h-full grayscale-[0.2] contrast-[1.1]" />
 
-                {/* Footer Info */}
-                <div className="absolute bottom-6 left-6 right-6 p-4 bg-[#111111]/90 backdrop-blur-xl border border-white/10 rounded-2xl z-10 flex items-center justify-between pointer-events-none">
-                    <div className="flex gap-4">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] uppercase tracking-widest text-[#FFCB74] font-bold">From</span>
-                            <span className="text-sm font-medium text-white">{segments[0]?.from}</span>
-                        </div>
-                        <div className="w-[1px] h-8 bg-white/10 self-center"></div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] uppercase tracking-widest text-[#FFCB74] font-bold">To</span>
-                            <span className="text-sm font-medium text-white">{segments[segments.length - 1]?.to}</span>
+                {error && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#111111]/90 z-20">
+                        <div className="max-w-md p-8 bg-[#1c1c1c] border border-red-500/30 rounded-3xl text-center">
+                            <AlertTriangle className="text-orange-500 mx-auto mb-4" size={48} />
+                            <h4 className="text-white font-bold mb-2">Maps Error</h4>
+                            <p className="text-white/60 text-sm mb-6">{error}</p>
+                            <button onClick={() => window.open('https://console.cloud.google.com/google/maps-apis/library', '_blank')} className="px-8 py-3 bg-[#FFCB74] text-[#111111] rounded-xl font-bold text-xs">Enable API</button>
                         </div>
                     </div>
-                    <div className="text-[#FFCB74] font-bold text-lg px-4 flex items-center gap-2">
-                        <span className="text-white/40 text-xs font-normal">Est. Distance</span>
-                        {segments.reduce((acc, s) => acc + parseFloat(s.distance || 0), 0).toFixed(1)} km
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
 };
-
 export default MapModal;
