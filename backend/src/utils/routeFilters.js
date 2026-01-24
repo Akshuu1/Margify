@@ -1,4 +1,9 @@
 function isTemplateValid(template, distanceKm, weatherCondition = 'Clear') {
+    if (!template) {
+        console.error('ERROR: isTemplateValid received undefined template:', template);
+        return false;
+    }
+
     // Hide walking completely for distances > 2km
     if (template.includes('WALK') && distanceKm > 2) {
         return false;
@@ -38,4 +43,3 @@ function isTemplateValid(template, distanceKm, weatherCondition = 'Clear') {
 }
 
 module.exports = { isTemplateValid };
-
