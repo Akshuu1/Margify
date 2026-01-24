@@ -5,13 +5,7 @@ const { connectDB } = require("./config/db")
 dotenv.config()
 connectDB()
 const app = express()
-const corsOptions = {
-  origin: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
-  credentials: true
-}
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(express.json())
 app.use("/api/auth", require("./routes/authRoutes"))
 app.use("/api/routes", require("./routes/routePlannerRoutes"))
