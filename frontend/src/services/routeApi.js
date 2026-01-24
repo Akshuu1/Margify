@@ -1,4 +1,4 @@
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || `http://${window.location.hostname}:3000`;
 
 export async function getRoutes(from, to, token, preferences) {
     const res = await fetch(`${BACKEND_URL}/api/routes/plan`, {
