@@ -85,22 +85,27 @@ async function getNearbyTouristPlaces(lat, lng, radius = 15000) {
             return scoreB - scoreA;
         });
 
-        // Return ALL major attractions found (don't limit to 10)
-        const places = sortedPlaces.map(place => ({
-            id: place.place_id,
-            name: place.name,
-            rating: place.rating || 0,
-            userRatingsTotal: place.user_ratings_total || 0,
-            vicinity: place.vicinity,
-            location: {
-                lat: place.geometry.location.lat,
-                lng: place.geometry.location.lng
-            },
-            photo: place.photos && place.photos.length > 0
-                ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
-                : null,
-            types: place.types || []
-        }));
+        // Return ALL major attractions found
+        const places = sortedPlaces.map(place => {
+            let photoUrl = null;
+            if (place.photos && place.photos.length > 0 && GOOGLE_PLACES_API_KEY) {
+                photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`;
+            }
+
+            return {
+                id: place.place_id,
+                name: place.name,
+                rating: place.rating || 0,
+                userRatingsTotal: place.user_ratings_total || 0,
+                vicinity: place.vicinity,
+                location: {
+                    lat: place.geometry.location.lat,
+                    lng: place.geometry.location.lng
+                },
+                photo: photoUrl,
+                types: place.types || []
+            };
+        });
 
         console.log(`Found ${places.length} genuine tourist attractions (filtered from ${uniquePlaces.length} unique, ${allPlaces.length} raw)`);
         places.forEach(p => console.log(`  ✓ ${p.name} (${p.rating}⭐, ${p.userRatingsTotal.toLocaleString()} reviews)`));
@@ -108,6 +113,35 @@ async function getNearbyTouristPlaces(lat, lng, radius = 15000) {
         return places;
     } catch (error) {
         console.error('Error fetching tourist places:', error.message);
+        return [];
+    }
+}
+
+async function getNearbyAmenities(lat, lng, radius = 2000) {
+    try {
+        const url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
+        const response = await axios.get(url, {
+            params: {
+                location: `${lat},${lng}`,
+                radius: radius,
+                type: 'restaurant|cafe|bakery',
+                minrating: 4.0,
+                key: GOOGLE_PLACES_API_KEY
+            }
+        });
+
+        if (response.data.status !== 'OK') return [];
+
+        return response.data.results.slice(0, 5).map(place => ({
+            name: place.name,
+            rating: place.rating,
+            vicinity: place.vicinity,
+            photo: place.photos && place.photos.length > 0
+                ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
+                : null
+        }));
+    } catch (error) {
+        console.error('Error fetching amenities:', error.message);
         return [];
     }
 }
@@ -149,6 +183,7 @@ async function getTouristPlacesAlongRoute(routeCoordinates) {
 
 module.exports = {
     getNearbyTouristPlaces,
+    getNearbyAmenities,
     getPlaceDetails,
     getTouristPlacesAlongRoute
 };

@@ -40,21 +40,29 @@ export function TouristPlaces({ places, onClose }) {
             {/* Content with Horizontal Carousel */}
             <div className="flex-1 overflow-y-auto p-6">
                 <div className="flex gap-6 overflow-x-auto pb-8 pt-2 snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: 'thin', scrollbarColor: '#FFCB74 #1c1c1c' }}>
-                    {displayPlaces.map((place) => (
-                        <div
-                            key={place.id}
-                            className="flex-shrink-0 w-[350px] bg-gradient-to-br from-[#2f2f2f] to-[#1c1c1c] rounded-xl overflow-hidden border border-white/10 hover:border-[#FFCB74]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#FFCB74]/10 cursor-pointer snap-start"
-                            onClick={() => handleViewDetails(place)}
-                        >
-                            {place.photo ? (
+                    {displayPlaces.map((place, idx) => {
+                        const fallbacks = [
+                            "https://images.unsplash.com/photo-1548013146-72479768bbaa?q=80&w=2673",
+                            "https://images.unsplash.com/photo-1564507592333-c60657eaa0ae?q=80&w=2670",
+                            "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?q=80&w=2922",
+                            "https://images.unsplash.com/photo-1524492707947-54b036573c00?q=80&w=2000"
+                        ];
+                        const fallback = fallbacks[idx % fallbacks.length];
+
+                        return (
+                            <div
+                                key={place.id}
+                                className="flex-shrink-0 w-[280px] sm:w-[350px] bg-gradient-to-br from-[#2f2f2f] to-[#1c1c1c] rounded-xl overflow-hidden border border-white/10 hover:border-[#FFCB74]/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-[#FFCB74]/10 cursor-pointer snap-start"
+                                onClick={() => handleViewDetails(place)}
+                            >
                                 <div className="relative w-full h-48 overflow-hidden group">
                                     <img
-                                        src={place.photo}
+                                        src={place.photo || fallback}
                                         alt={place.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         onError={(e) => {
                                             e.target.onerror = null;
-                                            e.target.src = "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?q=80&w=2922&auto=format&fit=crop"; // Fallback image
+                                            e.target.src = fallback;
                                         }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -63,42 +71,38 @@ export function TouristPlaces({ places, onClose }) {
                                         <span className="text-white font-bold text-sm">{place.rating.toFixed(1)}</span>
                                     </div>
                                 </div>
-                            ) : (
-                                <div className="w-full h-48 bg-gradient-to-br from-[#3f3f3f] to-[#2f2f2f] flex items-center justify-center">
-                                    <MapPin size={48} className="text-[#666]" />
-                                </div>
-                            )}
 
-                            <div className="p-5">
-                                <h4 className="text-[#e0e0e0] font-bold text-base mb-2 line-clamp-2 leading-tight">
-                                    {place.name}
-                                </h4>
+                                <div className="p-5">
+                                    <h4 className="text-[#e0e0e0] font-bold text-base mb-2 line-clamp-2 leading-tight">
+                                        {place.name}
+                                    </h4>
 
-                                <div className="flex items-center gap-2 text-sm text-[#888] mb-2">
-                                    <div className="flex items-center gap-1 bg-[#FFCB74]/10 px-2 py-0.5 rounded">
-                                        <Star size={12} className="text-[#FFCB74]" />
-                                        <span className="text-[#FFCB74] font-medium text-xs">{place.rating.toFixed(1)}</span>
+                                    <div className="flex items-center gap-2 text-sm text-[#888] mb-2">
+                                        <div className="flex items-center gap-1 bg-[#FFCB74]/10 px-2 py-0.5 rounded">
+                                            <Star size={12} className="text-[#FFCB74]" />
+                                            <span className="text-[#FFCB74] font-medium text-xs">{place.rating.toFixed(1)}</span>
+                                        </div>
+                                        <span className="text-[#666] text-xs">•</span>
+                                        <span className="text-xs">{place.userRatingsTotal.toLocaleString()} reviews</span>
                                     </div>
-                                    <span className="text-[#666] text-xs">•</span>
-                                    <span className="text-xs">{place.userRatingsTotal.toLocaleString()} reviews</span>
+
+                                    {place.vicinity && (
+                                        <p className="text-xs text-[#666] mb-3 line-clamp-2 leading-relaxed">{place.vicinity}</p>
+                                    )}
+
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleViewDetails(place)
+                                        }}
+                                        className="w-full bg-gradient-to-r from-[#FFCB74] to-[#ffd88a] text-[#111111] py-2 px-3 rounded-lg text-xs font-bold hover:from-[#ffd88a] hover:to-[#FFCB74] transition-all duration-300 flex items-center justify-center gap-2">
+                                        <Navigation size={12} />
+                                        Open in Maps
+                                    </button>
                                 </div>
-
-                                {place.vicinity && (
-                                    <p className="text-xs text-[#666] mb-3 line-clamp-2 leading-relaxed">{place.vicinity}</p>
-                                )}
-
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleViewDetails(place)
-                                    }}
-                                    className="w-full bg-gradient-to-r from-[#FFCB74] to-[#ffd88a] text-[#111111] py-2 px-3 rounded-lg text-xs font-bold hover:from-[#ffd88a] hover:to-[#FFCB74] transition-all duration-300 flex items-center justify-center gap-2">
-                                    <Navigation size={12} />
-                                    Open in Maps
-                                </button>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* View More button */}

@@ -28,3 +28,51 @@ export const loginUser = async (data) => {
     }
 }
 
+export const getProfile = async () => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return await res.json()
+        } else {
+            const text = await res.text();
+            console.error("Profile Error:", text);
+            return { error: "Failed to load profile (Non-JSON response)" };
+        }
+    } catch (error) {
+        console.error("Profile Fetch error:", error);
+        return { error: "Network error" };
+    }
+}
+
+export const changePassword = async (oldPassword, newPassword) => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${BACKEND_URL}/api/auth/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ oldPassword, newPassword })
+        })
+
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return await res.json()
+        } else {
+            const text = await res.text();
+            console.error("Change Password Error:", text);
+            return { error: res.status === 404 ? "Endpoint not found (404). Please restart backend." : "Failed to change password" };
+        }
+    } catch (error) {
+        console.error("Change Password error:", error);
+        return { error: "Network error" };
+    }
+}

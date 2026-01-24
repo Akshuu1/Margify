@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getProfile, changePassword } from "../services/protectedAuth"
+import { getProfile, changePassword } from "../services/auth"
 import { useNavigate } from "react-router-dom"
 import { Lock, User, Mail, Calendar, LogOut, Search, CheckCircle, AlertTriangle } from "lucide-react"
 
@@ -42,7 +42,7 @@ export function Profile() {
 
     try {
       const res = await changePassword(passwords.old, passwords.new)
-      if (res.message) { // Assuming success returns message, check your API
+      if (res.message) {
         setMessage({ type: 'success', text: "Password changed successfully!" })
         setPasswords({ old: '', new: '', confirm: '' })
         setShowPasswordChange(false)

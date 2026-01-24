@@ -1,14 +1,14 @@
 import { TimelineSegment } from "./TimelineSegment"
 import { formatDuration, formatCurrency } from "../utils/format"
-// Carbon display removed as per user request
-// import CarbonDisplay from "./CarbonDisplay"
-import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage } from "lucide-react"
+import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage, Map as MapIcon } from "lucide-react"
 import { useState } from "react"
 import { saveRouteOption } from "../services/savedRoutesApi"
+import MapModal from "./MapModal"
 
-export function RouteCard({ route, source, destination }) {
+export function RouteCard({ route, source, destination, hubPitStops }) {
   const segments = route.segments || []
   const [isBookmarked, setIsBookmarked] = useState(false)
+  const [showMap, setShowMap] = useState(false)
 
   const handleSaveOption = async (e) => {
     e.stopPropagation();
@@ -67,6 +67,14 @@ export function RouteCard({ route, source, destination }) {
             </span>
           )}
 
+          <button
+            onClick={() => setShowMap(true)}
+            className="flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium bg-white/10 hover:bg-[#FFCB74] hover:text-[#111111] transition-all border border-white/5"
+          >
+            <MapIcon size={14} />
+            Map View
+          </button>
+
           {route.vibe && (
             <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${VIBE_STYLES[route.vibe] || VIBE_STYLES.Efficient}`}>
               <Sparkles size={12} />
@@ -115,43 +123,52 @@ export function RouteCard({ route, source, destination }) {
       </div>
       <div className="flex flex-col gap-1 flex-1">
         {segments.map((segment, index) => (
-          <TimelineSegment key={index} segment={segment} isLast={index === segments.length - 1} />
+          <TimelineSegment
+            key={index}
+            segment={segment}
+            isLast={index === segments.length - 1}
+            pitStops={hubPitStops}
+          />
         ))}
       </div>
-      <div className="bg-[#FFCB74] text-[#111111] rounded-xl mt-6 px-4 py-3 flex justify-between items-center text-sm font-medium">
+      <div className="bg-[#FFCB74] text-[#111111] rounded-xl mt-6 px-4 py-3 grid grid-cols-2 sm:flex sm:justify-between items-center gap-3 sm:gap-0 text-sm font-medium">
         <div className="flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2m3.3 14.71L11 12.41V7h2v4.59l3.71 3.71z" /></svg>
-          {formatDuration(route.totalTime)}
+          <span className="whitespace-nowrap">{formatDuration(route.totalTime)}</span>
         </div>
-        <div className="flex items-center gap-1 border-l border-black/20 pl-3">
+
+        <div className="flex items-center gap-1 sm:border-l border-black/20 sm:pl-3">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
             <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7m0 9.5a2.5 2.5 0 0 1 0-5a2.5 2.5 0 0 1 0 5" />
           </svg>
-          {segments.reduce((acc, curr) => acc + parseFloat(curr.distance), 0).toFixed(1)}{" "}
-          km
+          <span className="whitespace-nowrap">{segments.reduce((acc, curr) => acc + parseFloat(curr.distance || 0), 0).toFixed(1)} km</span>
         </div>
-        <div className="flex items-center gap-1 border-l border-black/20 pl-3">
-          {formatCurrency(route.priceRange.min)} – {formatCurrency(route.priceRange.max)}
+
+        <div className="flex items-center gap-1 sm:border-l border-black/20 sm:pl-3 col-span-2 sm:col-auto justify-center sm:justify-start py-2 sm:py-0 border-t border-black/10 sm:border-t-0">
+          <span className="font-bold">{formatCurrency(route.priceRange.min)} – {formatCurrency(route.priceRange.max)}</span>
         </div>
-        <div className="flex items-center gap-1 border-l border-black/20 pl-3">
+
+        <div className="hidden sm:flex items-center gap-1 border-l border-black/20 pl-3">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
             <path fill="currentColor" d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3M21 9l-3.99-4v3H10v2h7.01v3L21 9" />
           </svg>
-          {route.transfers} Transfers
+          <span>{route.transfers} Transfers</span>
         </div>
 
-
-        <div className="flex items-center gap-2 ml-2">
+        <div className="flex items-center justify-end gap-2 sm:ml-2">
           <button
             onClick={handleSaveOption}
-            className="p-2 bg-black/10 rounded-lg hover:bg-black/20 transition-colors"
+            className="p-2 bg-black/10 rounded-lg hover:bg-black/20 transition-all active:scale-95"
             title="Bookmark Specific Route"
           >
-            {isBookmarked ? <Bookmark size={16} fill="currentColor" /> : <BookmarkPlus size={16} />}
+            {isBookmarked ? <Bookmark size={18} fill="currentColor" /> : <BookmarkPlus size={18} />}
           </button>
         </div>
-
       </div>
+
+      {showMap && (
+        <MapModal segments={segments} onClose={() => setShowMap(false)} />
+      )}
     </div>
   )
 }

@@ -65,6 +65,8 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
             mode,
             from: currentLocation,
             to: nextLocationName,
+            fromCoords: { lat: lastCoords.lat, lng: lastCoords.lng },
+            toCoords: { lat: nextCoords.lat, lng: nextCoords.lng },
             duration: metrics.durationMin,
             cost: cost,
             distance: metrics.distanceKm.toFixed(1)

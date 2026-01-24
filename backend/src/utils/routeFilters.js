@@ -1,41 +1,35 @@
 function isTemplateValid(template, distanceKm, weatherCondition = 'Clear') {
-    if (!template) {
-        console.error('ERROR: isTemplateValid received undefined template:', template);
+    if (!template) return false;
+
+    const transitModes = ['METRO', 'TRAIN', 'PLANE'];
+    const shortDistance = distanceKm < 10;
+    const mediumDistance = distanceKm < 30;
+
+    // 1. Complexity check: Short distances should NOT have too many transfers
+    if (shortDistance && template.length > 3) {
         return false;
     }
 
-    // Hide walking completely for distances > 2km
-    if (template.includes('WALK') && distanceKm > 2) {
+    // 2. Transit relevance: Don't suggest Metro/Train for very short distances (~5-10km)
+    // as the overhead of getting to/from station is higher than the journey
+    if (shortDistance && (template.includes('METRO') || template.includes('TRAIN'))) {
         return false;
     }
 
-    // Hide bike for distances > 10km
-    if (template.includes('BIKE') && distanceKm > 10) {
+    // 3. Plane relevance: Only for very long distances
+    if (template.includes('PLANE') && distanceKm < 400) {
         return false;
     }
 
-    // Filter auto/rickshaw for long distances > 50km
-    if (template.includes('AUTO') && distanceKm > 50) {
-        return false;
-    }
+    // 4. Mode specific distance blocks
+    if (template.includes('WALK') && distanceKm > 3) return false;
+    if (template.includes('BIKE') && distanceKm > 15) return false;
+    if (template.includes('AUTO') && distanceKm > 60) return false;
 
-    // Filter bus for very short distances < 1km
-    if (template.length === 1 && template[0] === 'BUS' && distanceKm < 1) {
-        return false;
-    }
-
-    // Filter plane for short distances < 500km
-    if (template.includes('PLANE') && distanceKm < 500) {
-        return false;
-    }
-
-    // Filter walk/bike in heavy rain (if weather data available)
+    // 5. Weather check
     if (weatherCondition && weatherCondition.toLowerCase().includes('rain')) {
         if (template.includes('WALK') || template.includes('BIKE')) {
-            // Only allow if combined with other modes
-            if (template.length === 1) {
-                return false;
-            }
+            if (template.length === 1) return false;
         }
     }
 

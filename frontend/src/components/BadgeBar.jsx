@@ -7,7 +7,7 @@ export function BadgeBar({ routes }) {
   )
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-wrap gap-2 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
       {cheapest && (
         <span className="bg-[#b7e28b] text-[#111111] px-4 py-2 rounded-full">
           Cheapest

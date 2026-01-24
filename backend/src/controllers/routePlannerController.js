@@ -21,10 +21,12 @@ exports.planRoute = async (req, res) => {
 
     const globalMetrics = await getRouteMetrics(from, to, 'DRIVE')
     const distanceKm = globalMetrics.distanceKm
+    console.log("Global Metrics:", globalMetrics);
 
     const rawTemplates = ROUTE_TEMPLATES.filter((template) =>
       isTemplateValid(template, distanceKm)
     )
+    console.log(`Templates after validation: ${rawTemplates.length}/${ROUTE_TEMPLATES.length}`);
 
     const hubs = await findTransitHubs(from, to)
     const fromCity = extractCity(from.name)
@@ -130,20 +132,44 @@ exports.planRoute = async (req, res) => {
     }
 
 
-    // ALWAYS fetch tourist places - this is a key feature
-    // Search near DESTINATION for better results (e.g., if going to Delhi, show Delhi attractions)
+    // 2. ALWAYS fetch tourist places near destination
     let touristPlaces = [];
     try {
-      // Use destination coordinates for better results
-      const searchLat = to.lat;
-      const searchLng = to.lng;
-      touristPlaces = await getNearbyTouristPlaces(searchLat, searchLng, 15000);
-      console.log(`Fetched ${touristPlaces.length} tourist places near destination: ${to.name || 'destination'}`);
+      touristPlaces = await require("../services/touristPlacesService").getNearbyTouristPlaces(to.lat, to.lng, 15000);
     } catch (error) {
       console.error('Error fetching tourist places:', error);
-      // Even on error, return empty array to avoid breaking the UI
-      touristPlaces = [];
     }
+
+    // 3. Hub Pit-Stops: Fetch amenities near transit hubs
+    const hubAmenities = { from: {}, to: {} };
+    try {
+      const { getNearbyAmenities } = require("../services/touristPlacesService");
+
+      const fetchHubAmenities = async (hubObj, type) => {
+        const hubList = hubObj[type];
+        const amenities = {};
+        for (const mode of ['PLANE', 'TRAIN', 'METRO', 'BUS']) {
+          if (hubList[mode]) {
+            amenities[mode] = await getNearbyAmenities(hubList[mode].coordinates.lat, hubList[mode].coordinates.lng, 1000);
+          }
+        }
+        return amenities;
+      };
+
+      const [fromAmen, toAmen] = await Promise.all([
+        fetchHubAmenities(hubs, 'from'),
+        fetchHubAmenities(hubs, 'to')
+      ]);
+
+      hubAmenities.from = fromAmen;
+      hubAmenities.to = toAmen;
+      console.log("Fetched pit-stops for transit hubs");
+    } catch (error) {
+      console.error("Error fetching hub pit-stops:", error);
+    }
+
+    // Pass hubAmenities to entire response or enrich segments?
+    // Let's attach them to the response for now, frontend will match by station name.
 
     const finalRoutes = processedRoutes.slice(0, 5);
     res.status(200).json({
@@ -152,6 +178,7 @@ exports.planRoute = async (req, res) => {
       routes: finalRoutes,
       weather: weatherData,
       touristPlaces: touristPlaces,
+      hubPitStops: hubAmenities,
       alerts: touristPlaces.length === 0 ? [{ message: 'No major tourist attractions found along this route' }] : []
     })
 

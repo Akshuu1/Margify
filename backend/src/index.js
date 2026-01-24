@@ -1,3 +1,6 @@
+console.log("----------------------------------------");
+console.log("!!! BACKEND VERSION 2.0 LOADED !!!");
+console.log("----------------------------------------");
 const express = require("express")
 const dotenv = require("dotenv")
 const cors = require("cors")

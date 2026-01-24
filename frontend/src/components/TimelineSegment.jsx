@@ -36,7 +36,7 @@ export function TimelineSegment({ segment, isLast }) {
 
             <div className="flex-1 pb-6">
                 <div className="flex justify-between items-start">
-                    <div>
+                    <div className="w-full">
                         <div className="flex items-center gap-2">
                             <h3 className="text-lg font-medium text-[#e0e0e0] capitalize">
                                 {mode.toLowerCase()}
@@ -67,7 +67,6 @@ export function TimelineSegment({ segment, isLast }) {
                                 {to} {stationCode && <span className="ml-1 text-[10px] bg-[#333] px-1 rounded text-[#999]">{stationCode}</span>}
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
