@@ -20,7 +20,7 @@ const ROUTE_TEMPLATES = [
   ["TRAIN", "BUS", "AUTO"],
   ["METRO", "BUS", "CAB"],
   ["AUTO", "TRAIN", "BUS"],
-  ["CAB","METRO","AUTO"]
+  ["CAB", "METRO", "AUTO"],
   ["WALK", "TRAIN", "WALK"],
   ["AUTO", "TRAIN", "WALK"],
   ["WALK", "TRAIN", "AUTO"],
