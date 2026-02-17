@@ -51,18 +51,18 @@ export const SavedRoutes = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white pt-24 px-4 sm:px-8">
+        <div className="min-h-screen bg-[#111111] text-[#e0e0e0] pt-24 px-4 sm:px-8" style={{ fontFamily: "Space Grotesk" }}>
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center gap-4 mb-8">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                        className="p-2 bg-[#2f2f2f] hover:bg-[#FFCB74] hover:text-[#111111] rounded-full transition-all border border-white/5"
                     >
-                        <ArrowLeft />
+                        <ArrowLeft size={20} />
                     </button>
                     <div className="flex items-center gap-3">
-                        <Bookmark className="text-purple-400" size={28} />
-                        <h1 className="text-3xl font-bold">Saved Routes</h1>
+                        <Bookmark className="text-[#FFCB74]" size={28} />
+                        <h1 className="text-3xl font-bold font-[Kiona-Regular] tracking-tight">Saved Routes</h1>
                     </div>
                 </div>
 
@@ -75,22 +75,22 @@ export const SavedRoutes = () => {
 
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FFCB74]"></div>
                     </div>
                 ) : routes.length === 0 ? (
-                    <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/10">
-                        <Bookmark size={48} className="mx-auto text-gray-600 mb-4" />
-                        <h3 className="text-xl font-medium text-gray-300 mb-2">No saved routes yet</h3>
-                        <p className="text-gray-500 mb-6">Plan a route and click the save button to see it here</p>
+                    <div className="text-center py-20 bg-[#1c1c1c] rounded-3xl border border-white/5">
+                        <Bookmark size={48} className="mx-auto text-[#FFCB74]/40 mb-4" />
+                        <h3 className="text-xl font-medium text-white mb-2">No saved routes yet</h3>
+                        <p className="text-white/40 mb-6">Plan a route and click the save button to see it here</p>
                         <button
-                            onClick={() => navigate('/routes')}
-                            className="bg-purple-600 hover:bg-purple-500 px-6 py-2 rounded-lg font-medium transition-colors"
+                            onClick={() => navigate('/search')}
+                            className="bg-[#FFCB74] hover:bg-[#ffd699] text-[#111111] px-8 py-3 rounded-xl font-bold transition-all active:scale-95"
                         >
-                            Plan a Trip
+                            Get Started
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {routes.map(route => (
                             <div key={route._id} className="route-card">
                                 <SavedRouteCard

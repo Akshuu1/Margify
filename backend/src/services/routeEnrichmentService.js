@@ -1,11 +1,22 @@
 const { getRouteMetrics } = require("./mapService");
-const RATES = { WALK: 0, AUTO: 12, BIKE: 6, CAB: 18, BUS: 3, METRO: 4, TRAIN: 2, PLANE: 100 };
+const RATES = { WALK: 0, AUTO: 12, BIKE: 6, CAB: 22, BUS: 3, METRO: 3, TRAIN: 2, PLANE: 100 };
 const BASE_FARES = { WALK: 0, AUTO: 30, BIKE: 20, CAB: 60, BUS: 10, METRO: 20, TRAIN: 50, PLANE: 3000 };
 
 const formatStopName = (mode, cityName, poiName) => {
     if (poiName) return poiName;
     return `${cityName} ${mode.charAt(0) + mode.slice(1).toLowerCase()} Stop`;
 };
+
+function calculateHaversine(lat1, lon1, lat2, lon2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
 async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc, metricsCache = new Map()) {
     let totalTimeMin = 0;
@@ -54,9 +65,30 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
             metrics = await metricsPromise;
         }
 
+        // Logic fix for PLANE and API Fallbacks
+        if (mode === 'PLANE') {
+            const aerialDist = calculateHaversine(lastCoords.lat, lastCoords.lng, nextCoords.lat, nextCoords.lng);
+            metrics.distanceKm = aerialDist;
+            metrics.durationMin = Math.round((aerialDist / 800) * 60) + 40; // 800km/h + 40m takeoff/landing
+        } else if (metrics.distanceKm === 0 || metrics.durationMin === 0) {
+            const fallbackDist = calculateHaversine(lastCoords.lat, lastCoords.lng, nextCoords.lat, nextCoords.lng);
+            metrics.distanceKm = fallbackDist;
+            const speeds = { WALK: 5, BUS: 25, METRO: 35, TRAIN: 60, CAB: 35, AUTO: 25, BIKE: 15 };
+            metrics.durationMin = Math.round((fallbackDist / (speeds[mode] || 30)) * 60);
+        }
+
         const rate = RATES[mode] || 10;
         const base = BASE_FARES[mode] || 0;
-        const cost = Math.round((metrics.distanceKm * rate) + base);
+        let cost = Math.round((metrics.distanceKm * rate) + base);
+
+        // Use fare from API if available
+        if (metrics.fare && metrics.fare.amount) {
+            cost = metrics.fare.amount;
+        } else {
+            // Apply fallback logic and caps for transits
+            if (mode === 'METRO') cost = Math.min(cost, 60);
+            if (mode === 'BUS') cost = Math.min(cost, 50);
+        }
 
         totalTimeMin += metrics.durationMin;
         totalCost += cost;
@@ -69,7 +101,8 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
             toCoords: { lat: nextCoords.lat, lng: nextCoords.lng },
             duration: metrics.durationMin,
             cost: cost,
-            distance: metrics.distanceKm.toFixed(1)
+            distance: metrics.distanceKm.toFixed(1),
+            polyline: metrics.polyline
         };
 
         if (lineInfo) {
@@ -85,8 +118,20 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
     }
 
     if (modes.length > 1) {
-        totalTimeMin += (modes.length - 1) * 20;
-        if (modes.includes('PLANE')) totalTimeMin += 90;
+        // Dynamic transfer overhead
+        modes.forEach((mode, idx) => {
+            if (idx === 0) return;
+            const prevMode = modes[idx - 1];
+
+            let transferTime = 10; // Default 10 mins for local transport
+
+            if (mode === 'PLANE' || prevMode === 'PLANE') transferTime = 120; // 2 hours for flights
+            else if (mode === 'TRAIN' || prevMode === 'TRAIN') transferTime = 30; // 30 mins for long distance trains
+            else if (mode === 'METRO' || mode === 'BUS') transferTime = 8; // 8 mins for metro/bus transfers
+            else if (mode === 'WALK' || prevMode === 'WALK') transferTime = 3; // 3 mins for walking transitions
+
+            totalTimeMin += transferTime;
+        });
     }
 
     const priceMin = Math.round(totalCost * 0.9);

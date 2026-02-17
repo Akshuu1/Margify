@@ -15,6 +15,7 @@ const MapModal = ({ segments, onClose }) => {
             try {
                 // Use official 2024 loading pattern
                 const { Map } = await window.google.maps.importLibrary("maps");
+                const { encoding } = await window.google.maps.importLibrary("geometry");
 
                 let AdvancedMarkerElement, PinElement;
                 try {
@@ -33,7 +34,6 @@ const MapModal = ({ segments, onClose }) => {
                     zoomControl: true,
                 });
 
-                // Correct Constructor Access
                 const bounds = new window.google.maps.LatLngBounds();
                 const directionsService = new window.google.maps.DirectionsService();
 
@@ -55,40 +55,73 @@ const MapModal = ({ segments, onClose }) => {
                                     glyphColor: "#111111",
                                     scale: 0.8
                                 });
-                                new AdvancedMarkerElement({ position: fromPos, map, content: pin.element, title: seg.from });
+                                new AdvancedMarkerElement({
+                                    position: fromPos,
+                                    map,
+                                    content: pin, // Pass PinElement directly (not pin.element)
+                                    title: seg.from
+                                });
+
+                                // Final marker
+                                if (idx === segments.length - 1) {
+                                    const finalPin = new PinElement({
+                                        background: "#ffffff",
+                                        borderColor: "#111111",
+                                        glyphText: "B",
+                                        glyphColor: "#111111",
+                                        scale: 1.0
+                                    });
+                                    new AdvancedMarkerElement({ position: toPos, map, content: finalPin, title: seg.to });
+                                }
                             } catch (e) {
-                                new window.google.maps.Marker({ position: fromPos, map, label: (idx + 1).toString(), title: seg.from });
+                                console.warn("Marker creation failed", e);
                             }
                         } else {
                             new window.google.maps.Marker({ position: fromPos, map, label: (idx + 1).toString(), title: seg.from });
+                            if (idx === segments.length - 1) {
+                                new window.google.maps.Marker({ position: toPos, map, label: 'B', title: seg.to });
+                            }
                         }
 
-                        // 2. Path Logic (Road vs Non-Road)
-                        const roadModes = ['CAB', 'AUTO', 'BUS', 'WALK', 'BIKE'];
-                        if (roadModes.includes(seg.mode)) {
-                            directionsService.route({
-                                origin: fromPos,
-                                destination: toPos,
-                                travelMode: window.google.maps.TravelMode.DRIVING
-                            }, (result, status) => {
-                                if (status === 'OK' && isMounted) {
-                                    new window.google.maps.DirectionsRenderer({
-                                        map,
-                                        directions: result,
-                                        suppressMarkers: true,
-                                        polylineOptions: { strokeColor: '#FFCB74', strokeWeight: 5, strokeOpacity: 0.8 }
-                                    });
-                                }
-                            });
-                        } else {
+                        // 2. Path Logic (Actual Path from Polyline vs Directions vs Straight Line)
+                        if (seg.polyline) {
+                            const path = encoding.decodePath(seg.polyline);
                             new window.google.maps.Polyline({
-                                path: [fromPos, toPos],
+                                path: path,
                                 geodesic: true,
                                 strokeColor: seg.mode === 'PLANE' ? '#7db3ff' : '#FFCB74',
-                                strokeOpacity: 0.6,
-                                strokeWeight: 3,
+                                strokeOpacity: 0.9,
+                                strokeWeight: 4,
                                 map
                             });
+                        } else {
+                            // Fallback to Directions or straight line if polyline missing
+                            const roadModes = ['CAB', 'AUTO', 'BUS', 'WALK', 'BIKE'];
+                            if (roadModes.includes(seg.mode)) {
+                                directionsService.route({
+                                    origin: fromPos,
+                                    destination: toPos,
+                                    travelMode: window.google.maps.TravelMode.DRIVING
+                                }, (result, status) => {
+                                    if (status === 'OK' && isMounted) {
+                                        new window.google.maps.DirectionsRenderer({
+                                            map,
+                                            directions: result,
+                                            suppressMarkers: true,
+                                            polylineOptions: { strokeColor: '#FFCB74', strokeWeight: 5, strokeOpacity: 0.8 }
+                                        });
+                                    }
+                                });
+                            } else {
+                                new window.google.maps.Polyline({
+                                    path: [fromPos, toPos],
+                                    geodesic: true,
+                                    strokeColor: seg.mode === 'PLANE' ? '#7db3ff' : '#FFCB74',
+                                    strokeOpacity: 0.6,
+                                    strokeWeight: 3,
+                                    map
+                                });
+                            }
                         }
 
                         bounds.extend(fromPos);
@@ -114,7 +147,7 @@ const MapModal = ({ segments, onClose }) => {
             }
             const script = document.createElement('script');
             script.id = 'google-maps-script';
-            script.innerHTML = `(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src="https://maps."+c+"apis.com/maps/api/js?"+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key: "${GOOGLE_KEY}", v: "weekly"});`;
+            script.innerHTML = `(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set(['geometry']),e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src="https://maps."+c+"apis.com/maps/api/js?"+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key: "${GOOGLE_KEY}", v: "weekly"});`;
             document.head.appendChild(script);
             const check = setInterval(() => { if (window.google?.maps?.importLibrary) { clearInterval(check); initMap(); } }, 200);
         };

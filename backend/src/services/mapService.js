@@ -5,39 +5,82 @@ async function getRouteMetrics(from, to, mode = 'DRIVE') {
         const modeMap = {
             'CAB': 'DRIVE',
             'AUTO': 'TWO_WHEELER',
-            'BIKE': 'TWO_WHEELER',
+            'BIKE': 'BICYCLE',
             'WALK': 'WALK',
-            'BUS': 'DRIVE',
-            'METRO': 'DRIVE'
+            'BUS': 'TRANSIT',
+            'METRO': 'TRANSIT',
+            'TRAIN': 'TRANSIT'
         };
         const travelMode = modeMap[mode] || 'DRIVE';
+
+        const requestBody = {
+            origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
+            destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
+            travelMode: travelMode,
+            departureTime: new Date().toISOString(), // Use current time for real-time traffic/transit
+            routingPreference: 'TRAFFIC_AWARE', // Apply traffic awareness globally where supported
+            computeAlternativeRoutes: false,
+        };
+
+        if (travelMode === 'TRANSIT') {
+            const transitModes = [];
+            if (mode === 'METRO') transitModes.push('SUBWAY');
+            if (mode === 'BUS') transitModes.push('BUS');
+            if (mode === 'TRAIN') transitModes.push('TRAIN');
+
+            if (transitModes.length > 0) {
+                requestBody.transitPreferences = {
+                    allowedTravelModes: transitModes,
+                    routingPreference: 'LESS_WALKING' // Focus on the transit mode requested
+                };
+            }
+        }
 
         const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': GOOGLE_KEY,
-                'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration'
+                'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.travelAdvisory.transitFare,routes.polyline.encodedPolyline'
             },
-            body: JSON.stringify({
-                origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
-                destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
-                travelMode: travelMode
-            })
+            body: JSON.stringify(requestBody)
         });
 
         const data = await response.json();
+
+        if (data.error) {
+            console.error(`Routes API Error [${mode}]:`, data.error.message);
+            return { distanceKm: 0, durationMin: 0, fare: null };
+        }
+
         if (data.routes && data.routes.length > 0) {
             const route = data.routes[0];
             const durationSeconds = parseInt(route.duration.replace('s', ''));
+
+            let fare = null;
+            if (route.travelAdvisory && route.travelAdvisory.transitFare) {
+                const transitFare = route.travelAdvisory.transitFare;
+                fare = {
+                    amount: parseInt(transitFare.units),
+                    currency: transitFare.currencyCode
+                };
+            }
+
+            console.log(`Route Found [${mode}]: ${route.distanceMeters}m, ${durationSeconds}s`);
+
             return {
                 distanceKm: route.distanceMeters / 1000,
-                durationMin: Math.round(durationSeconds / 60)
+                durationMin: Math.round(durationSeconds / 60),
+                fare: fare,
+                polyline: route.polyline?.encodedPolyline
             };
+        } else {
+            console.warn(`No route found for mode: ${mode}`);
+            return { distanceKm: 0, durationMin: 0, fare: null };
         }
     } catch (error) {
         console.error("Routes API error:", error.message);
-        return { distanceKm: 0, durationMin: 0 };
+        return { distanceKm: 0, durationMin: 0, fare: null };
     }
 }
 
