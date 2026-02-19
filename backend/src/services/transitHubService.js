@@ -3,16 +3,16 @@ const { findNearestPOI } = require("./mapService");
 async function findTransitHubs(from, to) {
     const [fromHubs, toHubs] = await Promise.all([
         Promise.all([
-            findNearestPOI(from, "airport", 100).catch(() => null),
-            findNearestPOI(from, "railway station", 60).catch(() => null),
+            findNearestPOI(from, "airport", 50).catch(() => null),
+            findNearestPOI(from, "railway station", 50).catch(() => null),
             findNearestPOI(from, "metro station", 50).catch(() => null),
-            findNearestPOI(from, "bus station", 40).catch(() => null),
+            findNearestPOI(from, "bus station", 50).catch(() => null),
         ]),
         Promise.all([
-            findNearestPOI(to, "airport", 100).catch(() => null),
-            findNearestPOI(to, "railway station", 60).catch(() => null),
+            findNearestPOI(to, "airport", 50).catch(() => null),
+            findNearestPOI(to, "railway station", 50).catch(() => null),
             findNearestPOI(to, "metro station", 50).catch(() => null),
-            findNearestPOI(to, "bus station", 40).catch(() => null),
+            findNearestPOI(to, "bus station", 50).catch(() => null),
         ])
     ]);
 

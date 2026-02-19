@@ -35,8 +35,9 @@ export default function ForgotPassword() {
             }
 
             if (res.ok) {
-                setMessage({ type: "success", text: "Reset code sent! Check console." });
-                setTimeout(() => navigate("/reset-password", { state: { email } }), 2000);
+                const successMsg = data.otp ? `Reset code sent! DEBUG: ${data.otp}` : "Reset code sent! Check your email.";
+                setMessage({ type: "success", text: successMsg });
+                setTimeout(() => navigate("/reset-password", { state: { email, otp: data.otp } }), 3000);
             } else {
                 setMessage({ type: "error", text: data.message || "User not found" });
             }

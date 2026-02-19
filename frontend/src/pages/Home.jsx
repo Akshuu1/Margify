@@ -19,50 +19,54 @@ export default function Home() {
     }
 
     const t1 = gsap.timeline({
-      onComplete: () => navigate("/login"),
+      onComplete: () => {
+        const token = localStorage.getItem("token")
+        if (token) navigate("/search")
+        else navigate("/login")
+      },
     })
 
     t1.fromTo(
-  lettersRef.current,
-  {
-    y: -500,
-    opacity: 0,
-  },
-  {
-    y: 0,
-    opacity: 1,
-    duration: 2,
-    delay:0.5,
-    stagger: 0.15,
-    ease: "power1.out",
-  }
-)
+      lettersRef.current,
+      {
+        y: -500,
+        opacity: 0,
+      },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 2,
+        delay: 0.5,
+        stagger: 0.15,
+        ease: "power1.out",
+      }
+    )
 
-t1.to(
-  lettersRef.current,
-  {
-    textShadow: "0px 0px 18px rgba(255, 255, 255, 0.7)",
-    duration: .6,
-    stagger: {
-      each: 0.1,
-      from:'random'
-    },
-    ease: "power2.out",
-  }
-)
+    t1.to(
+      lettersRef.current,
+      {
+        textShadow: "0px 0px 18px rgba(255, 255, 255, 0.7)",
+        duration: .6,
+        stagger: {
+          each: 0.1,
+          from: 'random'
+        },
+        ease: "power2.out",
+      }
+    )
 
-// t1.to(
-//   lettersRef.current,
-//   {
-//     textShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
-//     duration: 0.35,
-//     stagger: {
-//       each: 0.05,
-//       from: "center",
-//     },
-//     ease: "power2.in",
-//   })
-    
+    // t1.to(
+    //   lettersRef.current,
+    //   {
+    //     textShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
+    //     duration: 0.35,
+    //     stagger: {
+    //       each: 0.05,
+    //       from: "center",
+    //     },
+    //     ease: "power2.in",
+    //   })
+
     t1.to(containerRef.current, {
       scale: 1.6,
       opacity: 0,

@@ -9,6 +9,7 @@ export default function ResetPassword() {
     const navigate = useNavigate();
     const location = useLocation();
     const email = location.state?.email || "";
+    const devOtp = location.state?.otp || "";
 
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -81,6 +82,12 @@ export default function ResetPassword() {
                 </div>
 
                 <div className="bg-[#111111]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                    {devOtp && (
+                        <div className="mb-6 p-4 bg-[#FFCB74]/10 border border-[#FFCB74]/20 rounded-2xl text-center">
+                            <span className="text-[#FFCB74] text-xs font-bold uppercase tracking-widest block mb-1">Debug Reset Code</span>
+                            <span className="text-[#FFCB74] text-2xl font-bold tracking-[0.3em]">{devOtp}</span>
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-2">
                             <label className="text-[0.75rem] ml-2 text-[#888] font-bold uppercase tracking-widest">Verify Code</label>

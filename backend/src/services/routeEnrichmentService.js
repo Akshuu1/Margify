@@ -25,6 +25,7 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
     let lastCoords = fromLoc;
     const transitModes = ['PLANE', 'TRAIN', 'BUS', 'METRO'];
     const segments = [];
+
     for (let i = 0; i < modes.length; i++) {
         const mode = modes[i];
         let nextLocationName = toCity;
@@ -33,7 +34,6 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
 
         if (i < modes.length - 1) {
             const nextMode = modes[i + 1];
-
             if (transitModes.includes(nextMode)) {
                 const hub = hubs.from[nextMode];
                 if (hub) {
@@ -58,18 +58,17 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
         const cacheKey = `${lastCoords.lat},${lastCoords.lng}-${nextCoords.lat},${nextCoords.lng}-${mode}`;
         let metrics;
         if (metricsCache.has(cacheKey)) {
-            metrics = await metricsCache.get(cacheKey); // Await the promise
+            metrics = await metricsCache.get(cacheKey);
         } else {
             const metricsPromise = getRouteMetrics(lastCoords, nextCoords, mode);
             metricsCache.set(cacheKey, metricsPromise);
             metrics = await metricsPromise;
         }
 
-        // Logic fix for PLANE and API Fallbacks
         if (mode === 'PLANE') {
             const aerialDist = calculateHaversine(lastCoords.lat, lastCoords.lng, nextCoords.lat, nextCoords.lng);
             metrics.distanceKm = aerialDist;
-            metrics.durationMin = Math.round((aerialDist / 800) * 60) + 40; // 800km/h + 40m takeoff/landing
+            metrics.durationMin = Math.round((aerialDist / 800) * 60) + 40;
         } else if (metrics.distanceKm === 0 || metrics.durationMin === 0) {
             const fallbackDist = calculateHaversine(lastCoords.lat, lastCoords.lng, nextCoords.lat, nextCoords.lng);
             metrics.distanceKm = fallbackDist;
@@ -81,11 +80,9 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
         const base = BASE_FARES[mode] || 0;
         let cost = Math.round((metrics.distanceKm * rate) + base);
 
-        // Use fare from API if available
         if (metrics.fare && metrics.fare.amount) {
             cost = metrics.fare.amount;
         } else {
-            // Apply fallback logic and caps for transits
             if (mode === 'METRO') cost = Math.min(cost, 60);
             if (mode === 'BUS') cost = Math.min(cost, 50);
         }
@@ -112,24 +109,19 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
         }
 
         segments.push(segment);
-
         currentLocation = nextLocationName;
         lastCoords = nextCoords;
     }
 
     if (modes.length > 1) {
-        // Dynamic transfer overhead
         modes.forEach((mode, idx) => {
             if (idx === 0) return;
             const prevMode = modes[idx - 1];
-
-            let transferTime = 10; // Default 10 mins for local transport
-
-            if (mode === 'PLANE' || prevMode === 'PLANE') transferTime = 120; // 2 hours for flights
-            else if (mode === 'TRAIN' || prevMode === 'TRAIN') transferTime = 30; // 30 mins for long distance trains
-            else if (mode === 'METRO' || mode === 'BUS') transferTime = 8; // 8 mins for metro/bus transfers
-            else if (mode === 'WALK' || prevMode === 'WALK') transferTime = 3; // 3 mins for walking transitions
-
+            let transferTime = 10;
+            if (mode === 'PLANE' || prevMode === 'PLANE') transferTime = 120;
+            else if (mode === 'TRAIN' || prevMode === 'TRAIN') transferTime = 30;
+            else if (mode === 'METRO' || mode === 'BUS') transferTime = 8;
+            else if (mode === 'WALK' || prevMode === 'WALK') transferTime = 3;
             totalTimeMin += transferTime;
         });
     }
@@ -137,18 +129,13 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
     const priceMin = Math.round(totalCost * 0.9);
     const priceMax = Math.round(totalCost * 1.1);
 
-    let tag = null;
-    if (modes.includes('CAB') || modes.includes('PLANE')) tag = "Luxury";
-    else if (modes.includes('METRO')) tag = "Best";
-    if (index === 0) tag = "Best";
-
     return {
         id: index + 1,
         modes,
         segments,
         totalTime: Math.round(totalTimeMin),
         priceRange: { min: priceMin, max: priceMax },
-        tag,
+        tag: null, // Tagging moved to controller
         transfers: modes.length - 1
     };
 }

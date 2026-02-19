@@ -1,6 +1,10 @@
-const GOOGLE_KEY = process.env.GOOGLE_MAPS_API_KEY;
+// Access API key dynamically to ensure it's loaded after dotenv
+const getApiKey = () => process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+
+const { extractTransitInfo } = require("../utils/transitUtils");
 
 async function getRouteMetrics(from, to, mode = 'DRIVE') {
+    const GOOGLE_KEY = getApiKey();
     try {
         const modeMap = {
             'CAB': 'DRIVE',
@@ -13,14 +17,19 @@ async function getRouteMetrics(from, to, mode = 'DRIVE') {
         };
         const travelMode = modeMap[mode] || 'DRIVE';
 
+        const departureTime = new Date(Date.now() + 120000).toISOString();
+
         const requestBody = {
             origin: { location: { latLng: { latitude: from.lat, longitude: from.lng } } },
             destination: { location: { latLng: { latitude: to.lat, longitude: to.lng } } },
             travelMode: travelMode,
-            departureTime: new Date().toISOString(), // Use current time for real-time traffic/transit
-            routingPreference: 'TRAFFIC_AWARE', // Apply traffic awareness globally where supported
+            departureTime,
             computeAlternativeRoutes: false,
         };
+
+        if (travelMode === 'DRIVE' || travelMode === 'TWO_WHEELER') {
+            requestBody.routingPreference = 'TRAFFIC_AWARE';
+        }
 
         if (travelMode === 'TRANSIT') {
             const transitModes = [];
@@ -31,7 +40,7 @@ async function getRouteMetrics(from, to, mode = 'DRIVE') {
             if (transitModes.length > 0) {
                 requestBody.transitPreferences = {
                     allowedTravelModes: transitModes,
-                    routingPreference: 'LESS_WALKING' // Focus on the transit mode requested
+                    routingPreference: 'LESS_WALKING'
                 };
             }
         }
@@ -55,27 +64,27 @@ async function getRouteMetrics(from, to, mode = 'DRIVE') {
 
         if (data.routes && data.routes.length > 0) {
             const route = data.routes[0];
-            const durationSeconds = parseInt(route.duration.replace('s', ''));
+            const durationSeconds = parseInt(route.duration.replace('s', '')) || 0;
 
             let fare = null;
             if (route.travelAdvisory && route.travelAdvisory.transitFare) {
                 const transitFare = route.travelAdvisory.transitFare;
-                fare = {
-                    amount: parseInt(transitFare.units),
-                    currency: transitFare.currencyCode
-                };
+                const units = parseInt(transitFare.units);
+                if (!isNaN(units)) {
+                    fare = {
+                        amount: units,
+                        currency: transitFare.currencyCode || 'INR'
+                    };
+                }
             }
 
-            console.log(`Route Found [${mode}]: ${route.distanceMeters}m, ${durationSeconds}s`);
-
             return {
-                distanceKm: route.distanceMeters / 1000,
+                distanceKm: (route.distanceMeters || 0) / 1000,
                 durationMin: Math.round(durationSeconds / 60),
                 fare: fare,
                 polyline: route.polyline?.encodedPolyline
             };
         } else {
-            console.warn(`No route found for mode: ${mode}`);
             return { distanceKm: 0, durationMin: 0, fare: null };
         }
     } catch (error) {
@@ -84,22 +93,50 @@ async function getRouteMetrics(from, to, mode = 'DRIVE') {
     }
 }
 
-const { extractTransitInfo } = require("../utils/transitUtils");
 async function findNearestPOI(location, query, maxDist = 20) {
+    const GOOGLE_KEY = getApiKey();
+    if (!GOOGLE_KEY) return null;
+
+    const safeRadius = Math.min(maxDist * 1000, 50000);
+
     try {
         const typeMap = {
-            'metro': 'subway_station',
-            'metro station': 'subway_station',
-            'bus': 'bus_station',
-            'bus station': 'bus_station',
-            'bus stand': 'bus_station',
-            'train': 'train_station',
-            'railway station': 'train_station',
-            'airport': 'airport'
+            'metro': ['subway_station'],
+            'metro station': ['subway_station'],
+            'bus': ['bus_station', 'transit_station', 'bus_stop'],
+            'bus station': ['bus_station', 'transit_station'],
+            'bus stand': ['bus_station', 'transit_station', 'bus_stop'],
+            'train': ['train_station'],
+            'railway station': ['train_station'],
+            'airport': ['airport']
         };
 
-        const includedType = typeMap[query.toLowerCase()] || typeMap[query.toLowerCase().replace(' station', '')];
-        if (includedType) {
+        let includedTypes = typeMap[query.toLowerCase()] || [typeMap[query.toLowerCase().replace(' station', '')]?.[0] || 'transit_station'];
+        let places = [];
+
+        const isSonipatArea = location.lat > 28.9 && location.lat < 29.1;
+
+        const filterPOI = (list) => {
+            return list.filter(p => {
+                const name = p.displayName?.text?.toLowerCase() || "";
+                const address = (p.formattedAddress || "").toLowerCase();
+                const types = (p.types || []).map(t => t.toLowerCase());
+
+                const blacklist = ['police', 'booth', 'chowki', 'post', 'security', 'checkpoint'];
+                let isBlacklisted = blacklist.some(term => name.includes(term) || address.includes(term) || types.includes(term));
+
+                if (isSonipatArea && query.toLowerCase().includes('bus')) {
+                    if (name.includes('narela') || name.includes('bawana')) return false;
+                }
+
+                if (isBlacklisted) return false;
+                return true;
+            });
+        };
+
+        const forceTextSearch = (isSonipatArea && query.toLowerCase().includes('bus')) || query.toLowerCase().includes('terminal');
+
+        if (includedTypes && !forceTextSearch) {
             const response = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
                 method: 'POST',
                 headers: {
@@ -108,81 +145,102 @@ async function findNearestPOI(location, query, maxDist = 20) {
                     'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress,places.types'
                 },
                 body: JSON.stringify({
-                    includedTypes: [includedType],
-                    maxResultCount: 5,
+                    includedTypes: Array.isArray(includedTypes) ? includedTypes : [includedTypes],
+                    maxResultCount: 20,
                     rankPreference: "DISTANCE",
                     locationRestriction: {
                         circle: {
-                            center: {
-                                latitude: location.lat,
-                                longitude: location.lng
-                            },
-                            radius: maxDist * 1000
+                            center: { latitude: location.lat, longitude: location.lng },
+                            radius: safeRadius
                         }
                     }
                 })
             });
-
             const data = await response.json();
-            if (data.places && data.places.length > 0) {
-                const firstPOI = data.places[0];
-                const poiLat = firstPOI.location.latitude;
-                const poiLng = firstPOI.location.longitude;
-                const transitInfo = extractTransitInfo(firstPOI.displayName.text, firstPOI.formattedAddress);
-
-                return {
-                    name: firstPOI.displayName.text,
-                    fullName: firstPOI.formattedAddress,
-                    coordinates: { lng: poiLng, lat: poiLat },
-                    distance: 0,
-                    types: firstPOI.types || [],
-                    ...transitInfo
-                };
-            }
-            return null;
+            places = filterPOI(data.places || []);
         }
-        const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': GOOGLE_KEY,
-                'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress,places.types'
-            },
-            body: JSON.stringify({
-                textQuery: query,
-                locationBias: {
-                    circle: {
-                        center: { latitude: location.lat, longitude: location.lng },
-                        radius: maxDist * 1000
-                    }
+
+        if (places.length === 0 || forceTextSearch) {
+            let refinedQuery = query;
+            if (query.toLowerCase().includes('bus')) {
+                refinedQuery = isSonipatArea ? "Sonipat Bus Stand Terminal Haryana" : "Major Bus Stand Terminal ISBT";
+            } else if (query.toLowerCase().includes('metro')) {
+                refinedQuery = isSonipatArea ? "Samaypur Badli Metro Station" : "Metro Station Delhi NCR Junction";
+            } else {
+                refinedQuery = `${query} near ${location.name || ''}`;
+            }
+
+            const responseText = await fetch('https://places.googleapis.com/v1/places:searchText', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Goog-Api-Key': GOOGLE_KEY,
+                    'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress,places.types'
+                },
+                body: JSON.stringify({
+                    textQuery: refinedQuery,
+                    locationBias: {
+                        circle: {
+                            center: { latitude: location.lat, longitude: location.lng },
+                            radius: safeRadius
+                        }
+                    },
+                    maxResultCount: 20
+                })
+            });
+
+            const dataText = await responseText.json();
+            const textPlaces = filterPOI(dataText.places || []);
+
+            if (textPlaces.length > 0) {
+                if (forceTextSearch) places = textPlaces;
+                else places = [...textPlaces, ...places];
+            }
+        }
+
+        if (places && places.length > 0) {
+            const calculateScore = (p) => {
+                const name = p.displayName.text.toLowerCase();
+                const lat = p.location.latitude;
+                const lng = p.location.longitude;
+                const dist = Math.sqrt(Math.pow(lat - location.lat, 2) + Math.pow(lng - location.lng, 2));
+
+                let score = dist * 1000;
+
+                if (name.includes('terminal') || name.includes('isbt') || name.includes('stand') || name.includes('junction')) {
+                    score -= 50;
                 }
-            })
-        });
 
-        const data = await response.json();
-        if (data.places && data.places.length > 0) {
-            const firstPOI = data.places[0];
-            const poiLat = firstPOI.location.latitude;
-            const poiLng = firstPOI.location.longitude;
+                if (isSonipatArea && name.includes('sonipat')) score -= 40;
 
-            const transitInfo = extractTransitInfo(firstPOI.displayName.text, firstPOI.formattedAddress);
+                return score;
+            };
+
+            const sortedPlaces = places.sort((a, b) => calculateScore(a) - calculateScore(b));
+            const selectedMatch = sortedPlaces[0];
+
+            const poiLat = selectedMatch.location.latitude;
+            const poiLng = selectedMatch.location.longitude;
+            const transitInfo = extractTransitInfo(selectedMatch.displayName.text, selectedMatch.formattedAddress);
+
             return {
-                name: firstPOI.displayName.text,
-                fullName: firstPOI.formattedAddress,
+                name: selectedMatch.displayName.text,
+                fullName: selectedMatch.formattedAddress,
                 coordinates: { lng: poiLng, lat: poiLat },
                 distance: 0,
-                types: firstPOI.types || [],
+                types: selectedMatch.types || [],
                 ...transitInfo
             };
         }
 
     } catch (error) {
-        console.error("Error finding POI with Google Places (New):", error.message);
+        console.error("❌ [POI Error]:", error.message);
     }
     return null;
 }
 
 async function getPlaceName(lng, lat) {
+    const GOOGLE_KEY = getApiKey();
     try {
         const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_KEY}`);
         const data = await response.json();

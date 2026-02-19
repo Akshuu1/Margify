@@ -43,7 +43,18 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordToken = otp;
         user.resetPasswordExpires = Date.now() + 600000;
         await user.save();
-        res.json({ message: "Reset code sent to console. Check server logs." });
+        const { sendOTPEmail } = require("../utils/mockEmailService");
+        await sendOTPEmail(email, otp);
+
+        console.log("\n" + "=".repeat(30));
+        console.log("🔑 RESET CODE FOR:", email);
+        console.log("👉 CODE:", otp);
+        console.log("=".repeat(30) + "\n");
+
+        res.json({
+            message: "Reset code sent! Check console or below.",
+            otp: process.env.NODE_ENV === 'production' ? undefined : otp // Only for easier testing
+        });
     } catch (error) {
         console.error("Forgot Password Error:", error);
         res.status(500).json({ message: "Server Error" });

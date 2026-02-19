@@ -14,6 +14,13 @@ export function SearchLocation() {
 
   const navigate = useNavigate()
 
+  useState(() => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      navigate("/login")
+    }
+  }, [])
+
   const handleSourceChange = async (e) => {
     const val = e.target.value
     setSourceQuery(val)
