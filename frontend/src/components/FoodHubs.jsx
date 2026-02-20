@@ -4,11 +4,10 @@ import { useState } from "react"
 export function FoodHubs({ hubStops, onClose }) {
     const [selectedCategory, setSelectedCategory] = useState('All')
 
-    if (!hubStops) return null
+    if (!hubStops) return null;
 
-    // Flatten all food stops from from/to hubs
-    const allStops = []
-    const categories = ['All']
+    const allStops = [];
+    const categories = ['All'];
 
     const processesStops = (obj, locationType) => {
         Object.keys(obj).forEach(mode => {
@@ -37,7 +36,6 @@ export function FoodHubs({ hubStops, onClose }) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10 bg-[#1c1c1c]">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-500/20 rounded-lg">
@@ -56,7 +54,6 @@ export function FoodHubs({ hubStops, onClose }) {
                 </button>
             </div>
 
-            {/* Horizontal Scroll Area */}
             <div className="flex-1 overflow-y-auto p-6 bg-[#161616]">
                 <div className="flex gap-6 overflow-x-auto pb-8 pt-2 snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: 'thin', scrollbarColor: '#orange-400 #1c1c1c' }}>
                     {allStops.map((place, idx) => (
@@ -65,7 +62,6 @@ export function FoodHubs({ hubStops, onClose }) {
                             className="flex-shrink-0 w-[300px] bg-[#1c1c1c] rounded-2xl overflow-hidden border border-white/5 hover:border-orange-500/40 transition-all duration-300 hover:scale-[1.02] cursor-pointer snap-start flex flex-col group"
                             onClick={() => handleViewDetails(place)}
                         >
-                            {/* Photo Placeholder / Image */}
                             <div className="relative h-32 bg-orange-500/5 flex items-center justify-center overflow-hidden">
                                 {place.photo ? (
                                     <img src={place.photo} alt={place.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80" />

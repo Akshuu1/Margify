@@ -1,18 +1,9 @@
 const axios = require('axios');
 
-// Using Open-Meteo (No API Key Required)
 const BASE_URL = 'https://api.open-meteo.com/v1';
 
-/**
- * Get weather data for a location
- * @param {number} lat - Latitude
- * @param {number} lng - Longitude
- * @returns {Promise<object>} Weather data
- */
 async function getWeatherForLocation(lat, lng) {
     try {
-        console.log(`Fetching weather for ${lat},${lng} using Open-Meteo`);
-
         const response = await axios.get(`${BASE_URL}/forecast`, {
             params: {
                 latitude: lat,
@@ -23,22 +14,18 @@ async function getWeatherForLocation(lat, lng) {
         });
 
         const data = response.data.current;
-        console.log(`Weather fetch successful: ${data.temperature_2m}°C, Code: ${data.weather_code}`);
-
         const weatherCondition = getWeatherCondition(data.weather_code);
 
         return {
             temperature: data.temperature_2m,
-            feelsLike: data.temperature_2m, // Open-Meteo basic free tier doesn't verify feels_like easily, using temp
+            feelsLike: data.temperature_2m,
             condition: weatherCondition.main,
             description: weatherCondition.description,
             humidity: data.relative_humidity_2m,
             windSpeed: data.wind_speed_10m,
-            icon: '01d' // Default icon, frontend handles icons based on condition string
+            icon: '01d'
         };
     } catch (error) {
-        console.error('Weather API Error:', error.response?.data || error.message);
-        // Return fallback data if API fails to prevent crashing
         return {
             temperature: 25,
             feelsLike: 25,
@@ -52,7 +39,6 @@ async function getWeatherForLocation(lat, lng) {
 }
 
 function getWeatherCondition(code) {
-    // WMO Weather interpretation codes
     if (code === 0) return { main: 'Clear', description: 'Clear sky' };
     if (code >= 1 && code <= 3) return { main: 'Clouds', description: 'Partly cloudy' };
     if (code >= 45 && code <= 48) return { main: 'Fog', description: 'Foggy' };
@@ -62,16 +48,9 @@ function getWeatherCondition(code) {
     if (code >= 80 && code <= 82) return { main: 'Rain', description: 'Rain showers' };
     if (code >= 85 && code <= 86) return { main: 'Snow', description: 'Snow showers' };
     if (code >= 95 && code <= 99) return { main: 'Thunderstorm', description: 'Thunderstorm' };
-
     return { main: 'Clear', description: 'Clear sky' };
 }
 
-/**
- * Adjust route recommendations based on weather
- * @param {Array} routes - Array of route options
- * @param {object} weather - Weather data
- * @returns {Array} Adjusted routes with weather impact
- */
 function adjustRoutesForWeather(routes, weather) {
     const weatherConditions = {
         Rain: { avoidModes: ['bike', 'walking'], delayFactor: 1.2, message: 'Rain expected - outdoor modes may be uncomfortable' },
@@ -85,7 +64,6 @@ function adjustRoutesForWeather(routes, weather) {
 
     const condition = weatherConditions[weather.condition] || weatherConditions.Clear;
 
-    // Temperature adjustments
     let heatWarning = '';
     if (weather.temperature > 35) {
         heatWarning = 'Extreme heat - prefer AC transport';
@@ -114,11 +92,6 @@ function adjustRoutesForWeather(routes, weather) {
     });
 }
 
-/**
- * Check if weather is suitable for outdoor activities
- * @param {object} weather - Weather data
- * @returns {boolean} True if suitable
- */
 function isSuitableForOutdoor(weather) {
     const unsuitable = ['Rain', 'Snow', 'Thunderstorm'];
     if (unsuitable.includes(weather.condition)) return false;
@@ -126,7 +99,6 @@ function isSuitableForOutdoor(weather) {
     return true;
 }
 
-// Export only used functions
 module.exports = {
     getWeatherForLocation,
     adjustRoutesForWeather,

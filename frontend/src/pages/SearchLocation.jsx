@@ -12,14 +12,7 @@ export function SearchLocation() {
   const [sourceLocation, setSourceLocation] = useState(null)
   const [destinationLocation, setDestinationLocation] = useState(null)
 
-  const navigate = useNavigate()
-
-  useState(() => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      navigate("/login")
-    }
-  }, [])
+  const navigate = useNavigate();
 
   const handleSourceChange = async (e) => {
     const val = e.target.value
@@ -64,16 +57,6 @@ export function SearchLocation() {
       }
     })
 
-    const payload = {
-      from: {
-        lat: sourceLocation.lat,
-        lng: sourceLocation.lng,
-      },
-      to: {
-        lat: destinationLocation.lat,
-        lng: destinationLocation.lng,
-      },
-    }
   }
 
   return (

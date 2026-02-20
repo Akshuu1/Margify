@@ -12,7 +12,6 @@ const SavingsDashboard = ({ routes }) => {
     const cheapest = [...routes].sort((a, b) => a.priceRange.min - b.priceRange.min)[0];
     const smartChoice = [...routes].find(r => r.tag === "Smart Choice");
 
-    // Avoid showing insight if fastest and cheapest are the same
     if (fastest.id === cheapest.id) return null;
 
     const timeSaved = cheapest.totalTime - fastest.totalTime;
@@ -48,7 +47,6 @@ const SavingsDashboard = ({ routes }) => {
             {isOpen && (
                 <div className="mt-2 p-6 bg-[#1a1a1a] border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300 shadow-2xl">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                        {/* Time Card */}
                         <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="p-1.5 bg-blue-500/20 rounded-lg">
@@ -61,7 +59,6 @@ const SavingsDashboard = ({ routes }) => {
                             </p>
                         </div>
 
-                        {/* Cost Card */}
                         <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="p-1.5 bg-green-500/20 rounded-lg">
@@ -74,7 +71,6 @@ const SavingsDashboard = ({ routes }) => {
                             </p>
                         </div>
 
-                        {/* Smart Choice Card */}
                         {smartChoice && (
                             <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-400/20 p-4 rounded-xl sm:col-span-2 relative overflow-hidden group cursor-pointer hover:border-cyan-400/40 transition-all" onClick={() => setShowSmartChoiceInfo(true)}>
                                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -139,7 +135,6 @@ const SavingsDashboard = ({ routes }) => {
                 </div>
             )}
 
-            {/* Smart Choice Info Modal */}
             {showSmartChoiceInfo && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[101] flex items-center justify-center p-4" onClick={() => setShowSmartChoiceInfo(false)}>
                     <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f1419] rounded-3xl p-8 max-w-md w-full border border-cyan-400/20 shadow-2xl shadow-cyan-500/20" onClick={(e) => e.stopPropagation()}>

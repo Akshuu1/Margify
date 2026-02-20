@@ -1,46 +1,45 @@
 const MODE_CONFIG = require("../data/modeConfig");
 
-function calculateCostAndTime (modes,distanceKm){
-    let basePrice = 0
-    let totalTime = 0
+function calculateCostAndTime(modes, distanceKm){
+  let basePrice = 0;
+  let totalTime = 0;
+  let totalVariance = 0;
+  let segments = [];
 
-    let segments = []
+  if (modes.length === 1){
+    segments = [distanceKm];
+  } else if (modes.length === 2){
+    segments = [distanceKm * 0.3, distanceKm * 0.7];
+  } else {
+    segments = [distanceKm * 0.1, distanceKm * 0.8, distanceKm * 0.1];
+  }
 
-    if (modes.length === 1){
-        segments = [distanceKm]
-    } else if (modes.length === 2){
-        segments = [distanceKm * 0.3 , distanceKm * 0.7]
-    } else{
-        segments = [distanceKm * 0.1, distanceKm * 0.8 , distanceKm * 0.1]
+  for (let i = 0; i < modes.length; i++){
+    const mode = modes[i];
+    const config = MODE_CONFIG[mode];
+    const segmentDistance = segments[i];
+
+    totalTime += (segmentDistance / config.speed) * 60;
+    basePrice += segmentDistance * config.costPerKm;
+
+    if (config.baseFare && i === 0){
+      basePrice += config.baseFare;
     }
 
-    for (let i = 0;i<modes.length;i++){
-        const mode = modes[i]
-        const config = MODE_CONFIG[mode]
-        const segmentDistance = segments[i]
+    const distanceRatio = segmentDistance / distanceKm;
+    totalVariance += distanceRatio * (config.variance || 0);
+  }
 
-        totalTime += (segmentDistance/config.speed) * 60
-        basePrice += segmentDistance * config.costPerKm
+  const minPrice = Math.round(basePrice * (1 - totalVariance));
+  const maxPrice = Math.round(basePrice * (1 + totalVariance));
 
-        if (config.baseFare && i === 0){
-            basePrice += config.baseFare
-        }
-
-        const distanceRatio = segmentDistance / distanceKm;
-        totalVariance += distanceRatio * (config.variance || 0)
-    }
-
-    const minPrice = Math.round(basePrice * (1-totalVariance))
-    const maxPrice = Math.round(basePrice * (1+totalVariance))
-
-    return {
-        priceRange :{
-            min:minPrice,
-            max:maxPrice
-        },
-        totalTime : Math.round(totalTime)
-    }
-
+  return {
+    priceRange: {
+      min: minPrice,
+      max: maxPrice
+    },
+    totalTime: Math.round(totalTime)
+  };
 }
 
-module.exports = {calculateCostAndTime}
+module.exports = { calculateCostAndTime };

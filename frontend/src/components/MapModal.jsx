@@ -13,7 +13,6 @@ const MapModal = ({ segments, onClose }) => {
             if (!mapRef.current || !isMounted) return;
 
             try {
-                // Use official 2024 loading pattern
                 const { Map } = await window.google.maps.importLibrary("maps");
                 const { encoding } = await window.google.maps.importLibrary("geometry");
 
@@ -23,7 +22,6 @@ const MapModal = ({ segments, onClose }) => {
                     AdvancedMarkerElement = markerLib.AdvancedMarkerElement;
                     PinElement = markerLib.PinElement;
                 } catch (e) {
-                    console.warn("Advanced Markers unavailable.");
                 }
 
                 const map = new Map(mapRef.current, {
@@ -45,7 +43,6 @@ const MapModal = ({ segments, onClose }) => {
                         const fromPos = { lat: parseFloat(seg.fromCoords.lat), lng: parseFloat(seg.fromCoords.lng) };
                         const toPos = { lat: parseFloat(seg.toCoords.lat), lng: parseFloat(seg.toCoords.lng) };
 
-                        // 1. Unified Marker Logic
                         if (AdvancedMarkerElement && PinElement) {
                             try {
                                 const pin = new PinElement({
@@ -58,11 +55,10 @@ const MapModal = ({ segments, onClose }) => {
                                 new AdvancedMarkerElement({
                                     position: fromPos,
                                     map,
-                                    content: pin, // Pass PinElement directly (not pin.element)
+                                    content: pin,
                                     title: seg.from
                                 });
 
-                                // Final marker
                                 if (idx === segments.length - 1) {
                                     const finalPin = new PinElement({
                                         background: "#ffffff",
@@ -74,7 +70,6 @@ const MapModal = ({ segments, onClose }) => {
                                     new AdvancedMarkerElement({ position: toPos, map, content: finalPin, title: seg.to });
                                 }
                             } catch (e) {
-                                console.warn("Marker creation failed", e);
                             }
                         } else {
                             new window.google.maps.Marker({ position: fromPos, map, label: (idx + 1).toString(), title: seg.from });
@@ -83,7 +78,6 @@ const MapModal = ({ segments, onClose }) => {
                             }
                         }
 
-                        // 2. Path Logic (Actual Path from Polyline vs Directions vs Straight Line)
                         if (seg.polyline) {
                             const path = encoding.decodePath(seg.polyline);
                             new window.google.maps.Polyline({
@@ -95,7 +89,6 @@ const MapModal = ({ segments, onClose }) => {
                                 map
                             });
                         } else {
-                            // Fallback to Directions or straight line if polyline missing
                             const roadModes = ['CAB', 'AUTO', 'BUS', 'WALK', 'BIKE'];
                             if (roadModes.includes(seg.mode)) {
                                 directionsService.route({
@@ -133,7 +126,6 @@ const MapModal = ({ segments, onClose }) => {
                 renderRoute();
 
             } catch (err) {
-                console.error("Map Error:", err);
                 if (err.message?.includes('ApiNotActivatedMapError')) {
                     setError("Maps API not enabled. Activate in Cloud Console.");
                 }
@@ -159,7 +151,6 @@ const MapModal = ({ segments, onClose }) => {
     return (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <div className="relative w-full max-w-5xl h-[85vh] bg-[#1c1c1c] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
-                {/* Close button - High Priority Positioning */}
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 z-[1010] p-3 bg-black/60 hover:bg-red-500/80 rounded-full transition-all text-white border border-white/20 active:scale-95"

@@ -19,9 +19,8 @@ export function Profile() {
         }
       })
       .catch((err) => {
-        setUser(null)
-        console.error("Failed to load profile", err)
-        navigate("/login")
+        setUser(null);
+        navigate("/login");
       })
   }, [navigate])
   const handleLogout = () => {

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Lock, ShieldCheck, Loader2, KeyRound } from "lucide-react";
 
-// Standardize BACKEND_URL logic
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 export default function ResetPassword() {
@@ -36,15 +35,13 @@ export default function ResetPassword() {
                 body: JSON.stringify({ email, otp, newPassword }),
             });
 
-            // Check if response is JSON
             const contentType = res.headers.get("content-type");
             let data;
             if (contentType && contentType.indexOf("application/json") !== -1) {
-                data = await res.json();
+              data = await res.json();
             } else {
-                const text = await res.text();
-                console.error("Non-JSON response:", text);
-                throw new Error(res.status === 404 ? "Endpoint not found (404). Please restart backend." : `Server error: ${res.status}`);
+              const text = await res.text();
+              throw new Error(res.status === 404 ? "Endpoint not found (404). Please restart backend." : `Server error: ${res.status}`);
             }
 
             if (res.ok) {
@@ -54,18 +51,15 @@ export default function ResetPassword() {
                 setMessage({ type: "error", text: data.message || "Failed to reset password" });
             }
         } catch (err) {
-            console.error("Reset Password Error:", err);
-            setMessage({ type: "error", text: "Network error: Is backend running on port 3000?" });
+          setMessage({ type: "error", text: "Network error: Is backend running on port 3000?" });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="w-screen h-screen flex items-center justify-center p-6 bg-[#0a0a0a] relative overflow-hidden" style={{ fontFamily: "Space Grotesk" }}>
-
-            {/* Theme Blobs */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+      <div className="w-screen h-screen flex items-center justify-center p-6 bg-[#0a0a0a] relative overflow-hidden" style={{ fontFamily: "Space Grotesk" }}>
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-[#FFCB74]/5 rounded-full blur-[120px]"></div>
                 <div className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[600px] bg-[#1c1c1c] rounded-full blur-[120px]"></div>
             </div>

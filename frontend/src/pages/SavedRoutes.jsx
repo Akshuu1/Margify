@@ -29,11 +29,10 @@ export const SavedRoutes = () => {
 
     const fetchRoutes = async () => {
         try {
-            const data = await getSavedRoutes();
-            setRoutes(data.routes || []);
+          const data = await getSavedRoutes();
+          setRoutes(data.routes || []);
         } catch (err) {
-            console.error(err);
-            setError('Failed to load saved routes');
+          setError('Failed to load saved routes');
         } finally {
             setLoading(false);
         }

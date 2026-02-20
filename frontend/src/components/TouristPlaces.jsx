@@ -9,7 +9,7 @@ export function TouristPlaces({ places, onClose }) {
         return null
     }
 
-    const displayPlaces = showAll ? places : places.slice(0, 8)
+    const displayPlaces = showAll ? places : places.slice(0, 8);
 
     const handleViewDetails = (place) => {
         const query = encodeURIComponent(place.name + " " + (place.vicinity || ""))
@@ -18,7 +18,6 @@ export function TouristPlaces({ places, onClose }) {
 
     return (
         <div className="w-full h-full flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-[#FFCB74]/20 rounded-lg">
@@ -37,7 +36,6 @@ export function TouristPlaces({ places, onClose }) {
                 </button>
             </div>
 
-            {/* Content with Horizontal Carousel */}
             <div className="flex-1 overflow-y-auto p-6">
                 <div className="flex gap-6 overflow-x-auto pb-8 pt-2 snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: 'thin', scrollbarColor: '#FFCB74 #1c1c1c' }}>
                     {displayPlaces.map((place, idx) => {
@@ -61,8 +59,8 @@ export function TouristPlaces({ places, onClose }) {
                                         alt={place.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         onError={(e) => {
-                                            e.target.onerror = null;
-                                            e.target.src = fallback;
+                                          e.target.onerror = null;
+                                          e.target.src = fallback;
                                         }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -105,7 +103,7 @@ export function TouristPlaces({ places, onClose }) {
                     })}
                 </div>
 
-                {/* View More button */}
+
                 {places.length > 8 && (
                     <div className="flex justify-center mt-6">
                         <button

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Cloud, MapPin, Utensils, Star, Droplets, Wind, Navigation, Sparkles, Cloudy, Sun, CloudRain, CloudSnow, CloudLightning, Activity } from 'lucide-react';
+import { Cloud, MapPin, Utensils, Star, Droplets, Wind, Navigation, Sparkles, Cloudy, Sun, CloudRain, CloudSnow, CloudLightning } from 'lucide-react';
 import { gsap } from 'gsap';
+
 export function DiscoveryHub({ weather, touristPlaces, hubPitStops, onShowTourist, onShowFood }) {
     const hubRef = useRef(null);
     const hasStops = hubPitStops && (Object.keys(hubPitStops.from || {}).length > 0 || Object.keys(hubPitStops.to || {}).length > 0);

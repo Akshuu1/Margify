@@ -11,20 +11,20 @@ export default function Home() {
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
-    ).matches
+    ).matches;
 
     if (prefersReducedMotion) {
-      navigate("/login")
-      return
+      navigate("/login");
+      return;
     }
 
     const t1 = gsap.timeline({
       onComplete: () => {
-        const token = localStorage.getItem("token")
-        if (token) navigate("/search")
-        else navigate("/login")
+        const token = localStorage.getItem("token");
+        if (token) navigate("/search");
+        else navigate("/login");
       },
-    })
+    });
 
     t1.fromTo(
       lettersRef.current,
@@ -40,39 +40,27 @@ export default function Home() {
         stagger: 0.15,
         ease: "power1.out",
       }
-    )
+    );
 
     t1.to(
       lettersRef.current,
       {
         textShadow: "0px 0px 18px rgba(255, 255, 255, 0.7)",
-        duration: .6,
+        duration: 0.6,
         stagger: {
           each: 0.1,
           from: 'random'
         },
         ease: "power2.out",
       }
-    )
-
-    // t1.to(
-    //   lettersRef.current,
-    //   {
-    //     textShadow: "0px 0px 0px rgba(255, 255, 255, 0)",
-    //     duration: 0.35,
-    //     stagger: {
-    //       each: 0.05,
-    //       from: "center",
-    //     },
-    //     ease: "power2.in",
-    //   })
+    );
 
     t1.to(containerRef.current, {
       scale: 1.6,
       opacity: 0,
       duration: 0.8,
       ease: "power2.inOut",
-    })
+    });
   }, [])
 
   return (
