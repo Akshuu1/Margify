@@ -1,10 +1,12 @@
 const ROUTE_TEMPLATES = [
-  // Short Distance / Local
+  // Short Distance / Local (always available - no transit hubs required)
   ["WALK"],
   ["AUTO"],
   ["BIKE"],
   ["CAB"],
   ["BUS"],
+  
+  // Local multi-modal (may vary by location)
   ["WALK", "BUS", "WALK"],
   ["WALK", "METRO", "WALK"],
   ["AUTO", "BUS", "AUTO"],
@@ -13,6 +15,8 @@ const ROUTE_TEMPLATES = [
   ["AUTO", "METRO", "WALK"],
   ["CAB", "METRO", "CAB"],
   ["BIKE", "METRO", "BIKE"],
+  
+  // Train routes (for longer distances)
   ["AUTO", "TRAIN", "AUTO"],
   ["CAB", "TRAIN", "CAB"],
   ["BUS", "TRAIN", "CAB"],
@@ -25,8 +29,12 @@ const ROUTE_TEMPLATES = [
   ["AUTO", "TRAIN", "WALK"],
   ["WALK", "TRAIN", "AUTO"],
   ["BIKE", "TRAIN", "BIKE"],
+  
+  // Complex routes
   ["AUTO", "METRO", "BUS", "WALK"],
   ["WALK", "BUS", "METRO", "AUTO"],
+  
+  // Flight routes
   ["AUTO", "PLANE", "AUTO"],
   ["CAB", "PLANE", "CAB"],
   ["BUS", "PLANE", "BUS"],

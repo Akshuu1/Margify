@@ -40,11 +40,17 @@ export function RouteCard({ route, source, destination, hubPitStops }) {
 
 
   const TAG_STYLES = {
+    // Legacy
     Cheapest: "bg-[#b7e28b] text-[#111111]",
     Fastest: "bg-[#7db3ff] text-[#111111]",
     Best: "bg-[#FFCB74] text-[#111111]",
     Luxury: "bg-[#d6a8ff] text-[#111111]",
     Alternative: "bg-[#cba880] text-[#e0e0e0] border border-white/10",
+    // New tags
+    Economy: "bg-[#b7e28b] text-[#111111]",
+    Premium: "bg-[#d6a8ff] text-[#111111]",
+    "Smart Choice": "bg-gradient-to-r from-[#FFCB74] to-[#ff8c42] text-[#111111] font-bold",
+    "Eco-Friendly": "bg-emerald-400 text-[#111111]",
   }
 
   const VIBE_STYLES = {

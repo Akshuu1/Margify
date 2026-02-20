@@ -20,6 +20,20 @@ exports.planRoute = async (req, res) => {
     )
 
     const hubs = await findTransitHubs(from, to)
+    console.log("📍 Hubs found:", {
+      from: {
+        PLANE: !!hubs.from.PLANE,
+        TRAIN: !!hubs.from.TRAIN,
+        METRO: !!hubs.from.METRO,
+        BUS: !!hubs.from.BUS
+      },
+      to: {
+        PLANE: !!hubs.to.PLANE,
+        TRAIN: !!hubs.to.TRAIN,
+        METRO: !!hubs.to.METRO,
+        BUS: !!hubs.to.BUS
+      }
+    })
 
     const validRoutes = rawTemplates.filter(modes => {
       const transitModes = ['PLANE', 'TRAIN', 'METRO', 'BUS']
@@ -28,8 +42,27 @@ exports.planRoute = async (req, res) => {
         if (transitModes.includes(mode)) {
           const isFirstHub = i === 0 || (i > 0 && !transitModes.includes(modes[i - 1]))
           const isLastHub = i === modes.length - 1 || (i < modes.length - 1 && !transitModes.includes(modes[i + 1]))
-          if (isFirstHub && !hubs.from[mode]) return false
-          if (isLastHub && !hubs.to[mode]) return false
+          
+          // For METRO and BUS, allow routes even if hub is missing (calculate fallback)
+          // Only strictly require PLANE and TRAIN hubs
+          if (mode === 'PLANE' || mode === 'TRAIN') {
+            if (isFirstHub && !hubs.from[mode]) {
+              console.log(`⚠️  (Strict) Filtering out route with ${mode} at source`, modes)
+              return false
+            }
+            if (isLastHub && !hubs.to[mode]) {
+              console.log(`⚠️  (Strict) Filtering out route with ${mode} at destination`, modes)
+              return false
+            }
+          } else {
+            // METRO and BUS can work without hubs (will use fallback coordinates)
+            if (isFirstHub && !hubs.from[mode]) {
+              console.log(`ℹ️  ${mode} at source not found, will use fallback`, modes)
+            }
+            if (isLastHub && !hubs.to[mode]) {
+              console.log(`ℹ️  ${mode} at destination not found, will use fallback`, modes)
+            }
+          }
         }
       }
       return true
@@ -43,7 +76,19 @@ exports.planRoute = async (req, res) => {
     )
 
     // Filter out routes that failed to calculate correctly
-    const finalRoutes = enrichedRoutes.filter(r => r.totalTime > 0);
+    let finalRoutes = enrichedRoutes.filter(r => r.totalTime > 0);
+
+    // FALLBACK: If no routes found, include basic non-transit routes
+    if (finalRoutes.length === 0) {
+      console.log("⚠️  No routes found after filtering, including fallback routes")
+      const fallbackModes = [["WALK"], ["AUTO"], ["BIKE"], ["CAB"], ["BUS"], ["WALK", "BUS", "WALK"]]
+      const fallbackRoutes = await Promise.all(
+        fallbackModes.map((modes, index) =>
+          enrichRoute(modes, index, hubs, from.name, to.name, from, to, metricsCache)
+        )
+      )
+      finalRoutes = fallbackRoutes.filter(r => r.totalTime > 0)
+    }
 
     // Sort by Time primarily
     finalRoutes.sort((a, b) => a.totalTime - b.totalTime);
@@ -87,7 +132,7 @@ exports.planRoute = async (req, res) => {
     res.status(200).json({
       distanceKm,
       totalOptions: finalRoutes.length,
-      routes: finalRoutes, // NO LIMITS
+      routes: finalRoutes.slice(0,7), // NO LIMITS
       weather: weatherData
     })
   } catch (err) {

@@ -137,27 +137,35 @@ async function findNearestPOI(location, query, maxDist = 20) {
         const forceTextSearch = (isSonipatArea && query.toLowerCase().includes('bus')) || query.toLowerCase().includes('terminal');
 
         if (includedTypes && !forceTextSearch) {
-            const response = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Goog-Api-Key': GOOGLE_KEY,
-                    'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress,places.types'
-                },
-                body: JSON.stringify({
-                    includedTypes: Array.isArray(includedTypes) ? includedTypes : [includedTypes],
-                    maxResultCount: 20,
-                    rankPreference: "DISTANCE",
-                    locationRestriction: {
-                        circle: {
-                            center: { latitude: location.lat, longitude: location.lng },
-                            radius: safeRadius
+            try {
+                const response = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Goog-Api-Key': GOOGLE_KEY,
+                        'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress,places.types'
+                    },
+                    body: JSON.stringify({
+                        includedTypes: Array.isArray(includedTypes) ? includedTypes : [includedTypes],
+                        maxResultCount: 20,
+                        rankPreference: "DISTANCE",
+                        locationRestriction: {
+                            circle: {
+                                center: { latitude: location.lat, longitude: location.lng },
+                                radius: safeRadius
+                            }
                         }
-                    }
-                })
-            });
-            const data = await response.json();
-            places = filterPOI(data.places || []);
+                    })
+                });
+                const data = await response.json();
+                if (data.error) {
+                    console.warn(`⚠️  Places searchNearby error for ${query}:`, data.error.message);
+                } else {
+                    places = filterPOI(data.places || []);
+                }
+            } catch (e) {
+                console.error(`❌ searchNearby error for ${query}:`, e.message);
+            }
         }
 
         if (places.length === 0 || forceTextSearch) {
@@ -190,11 +198,14 @@ async function findNearestPOI(location, query, maxDist = 20) {
             });
 
             const dataText = await responseText.json();
-            const textPlaces = filterPOI(dataText.places || []);
-
-            if (textPlaces.length > 0) {
-                if (forceTextSearch) places = textPlaces;
-                else places = [...textPlaces, ...places];
+            if (dataText.error) {
+                console.warn(`⚠️  Places searchText error for '${refinedQuery}':`, dataText.error.message);
+            } else {
+                const textPlaces = filterPOI(dataText.places || []);
+                if (textPlaces.length > 0) {
+                    if (forceTextSearch) places = textPlaces;
+                    else places = [...textPlaces, ...places];
+                }
             }
         }
 

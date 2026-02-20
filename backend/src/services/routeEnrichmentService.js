@@ -25,6 +25,11 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
     let lastCoords = fromLoc;
     const transitModes = ['PLANE', 'TRAIN', 'BUS', 'METRO'];
     const segments = [];
+    
+    // Create a unique ID based on modes and a hash
+    const modesString = modes.join('_');
+    const modeHash = modesString.split('').reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0).toString(36);
+    const uniqueId = `${modeHash}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     for (let i = 0; i < modes.length; i++) {
         const mode = modes[i];
@@ -40,6 +45,16 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
                     nextLocationName = hub.name;
                     nextCoords = { lat: hub.coordinates.lat, lng: hub.coordinates.lng };
                     lineInfo = { lineName: hub.lineName, lineColor: hub.lineColor, stationCode: hub.stationCode };
+                } else {
+                    // Fallback: use a midpoint between current and destination for METRO/BUS if hub not found
+                    if (nextMode === 'METRO' || nextMode === 'BUS') {
+                        nextLocationName = `${fromCity} ${nextMode} Hub`;
+                        nextCoords = {
+                            lat: (fromLoc.lat + toLoc.lat) / 2,
+                            lng: (fromLoc.lng + toLoc.lng) / 2
+                        };
+                        console.log(`🔄 Using fallback hub for ${nextMode} at source`);
+                    }
                 }
             }
             else if (transitModes.includes(mode)) {
@@ -48,6 +63,16 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
                     nextLocationName = hub.name;
                     nextCoords = { lat: hub.coordinates.lat, lng: hub.coordinates.lng };
                     lineInfo = { lineName: hub.lineName, lineColor: hub.lineColor, stationCode: hub.stationCode };
+                } else {
+                    // Fallback: use a midpoint for METRO/BUS if hub not found
+                    if (mode === 'METRO' || mode === 'BUS') {
+                        nextLocationName = `${toCity} ${mode} Hub`;
+                        nextCoords = {
+                            lat: (fromLoc.lat + toLoc.lat) / 2,
+                            lng: (fromLoc.lng + toLoc.lng) / 2
+                        };
+                        console.log(`🔄 Using fallback hub for ${mode} at destination`);
+                    }
                 }
             }
             else {
@@ -130,7 +155,7 @@ async function enrichRoute(modes, index, hubs, fromCity, toCity, fromLoc, toLoc,
     const priceMax = Math.round(totalCost * 1.1);
 
     return {
-        id: index + 1,
+        id: uniqueId,
         modes,
         segments,
         totalTime: Math.round(totalTimeMin),
