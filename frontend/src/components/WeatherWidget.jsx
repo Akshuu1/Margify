@@ -25,10 +25,10 @@ const WeatherWidget = ({ weather }) => {
         if (!current) return null;
 
         return (
-            <div className="bg-[#2f2f2f] rounded-xl p-4 border border-white/10">
+            <div className="bg-gradient-to-br from-[#2f2f2f] to-[#1a1a1a] rounded-xl p-4 border border-white/10 hover:border-[#FFCB74]/30 transition-colors">
                 <div className="flex items-center gap-2 mb-3">
                     <MapPin size={14} className="text-[#FFCB74]" />
-                    <span className="text-xs text-[#888] uppercase tracking-wide">{label}</span>
+                    <span className="text-xs text-[#999] uppercase tracking-wide font-semibold">{label}</span>
                 </div>
 
                 <div className="flex items-start justify-between mb-3">
@@ -38,12 +38,12 @@ const WeatherWidget = ({ weather }) => {
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                             {getWeatherIcon(current.condition)}
-                            <span className="text-sm text-[#aaa]">{current.condition}</span>
+                            <span className="text-sm text-[#999]">{current.condition}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-[#888] mb-2">
+                <div className="flex items-center gap-4 text-xs text-[#999] mb-2">
                     <div className="flex items-center gap-1">
                         <Droplets size={12} />
                         <span>{current.humidity}%</span>

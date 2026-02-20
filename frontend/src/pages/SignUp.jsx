@@ -12,6 +12,9 @@ export function Signup() {
     if (data.message === "User created successfully") {
       alert(data.message)
       navigate('/login')
+    } else if (data.message === "User already Exists") {
+      alert('User already exists! Redirecting to login...')
+      navigate('/login')
     } else if (data.message) {
       alert(data.message)
     }

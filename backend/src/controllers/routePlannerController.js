@@ -4,6 +4,7 @@ const { isTemplateValid } = require("../utils/routeFilters")
 const { findTransitHubs } = require("../services/transitHubService")
 const { enrichRoute } = require("../services/routeEnrichmentService")
 const { getWeatherForLocation } = require("../services/weatherService")
+const { getNearbyTouristPlaces, getNearbyAmenities } = require("../services/touristPlacesService")
 
 exports.planRoute = async (req, res) => {
   try {
@@ -122,18 +123,68 @@ exports.planRoute = async (req, res) => {
       });
     }
 
+    // SORT ROUTES BY PRIORITY: Smart Choice > Economy > Premium > Fastest > Others
+    const tagPriority = {
+      "Smart Choice": 1,
+      "Economy": 2,
+      "Premium": 3,
+      "Fastest": 4
+    };
+    
+    finalRoutes.sort((a, b) => {
+      const priorityA = tagPriority[a.tag] || 99;
+      const priorityB = tagPriority[b.tag] || 99;
+      return priorityA - priorityB;
+    });
+
     let weatherData = null;
+    let touristPlaces = [];
+    let hubPitStops = { from: {}, to: {} };
+
     try {
-      const sourceWeather = await getWeatherForLocation(from.lat, from.lng)
-      const destWeather = await getWeatherForLocation(to.lat, to.lng)
-      weatherData = { sourcePath: sourceWeather, destPath: destWeather };
-    } catch (e) { }
+      // Fetch weather data
+      const sourceWeather = await getWeatherForLocation(from.lat, from.lng).catch(() => null);
+      const destWeather = await getWeatherForLocation(to.lat, to.lng).catch(() => null);
+      if (sourceWeather && destWeather) {
+        weatherData = { 
+          source: { current: sourceWeather, location: from.name }, 
+          destination: { current: destWeather, location: to.name }
+        };
+      }
+
+      // Fetch tourist places from midpoint
+      const midpointLat = (from.lat + to.lat) / 2;
+      const midpointLng = (from.lng + to.lng) / 2;
+      touristPlaces = await getNearbyTouristPlaces(midpointLat, midpointLng, 15000).catch(() => []);
+
+      // Fetch food hubs near source and destination
+      const fromFood = await getNearbyAmenities(from.lat, from.lng, 2000).catch(() => []);
+      const toFood = await getNearbyAmenities(to.lat, to.lng, 2000).catch(() => []);
+
+      // Build hubPitStops with food data
+      if (fromFood.length > 0) hubPitStops.from.FOOD = fromFood;
+      if (toFood.length > 0) hubPitStops.to.FOOD = toFood;
+
+      // Also add transit hub food data if available
+      if (hubs.from.METRO) hubPitStops.from.METRO = [hubs.from.METRO];
+      if (hubs.from.TRAIN) hubPitStops.from.TRAIN = [hubs.from.TRAIN];
+      if (hubs.from.BUS) hubPitStops.from.BUS = [hubs.from.BUS];
+      if (hubs.to.METRO) hubPitStops.to.METRO = [hubs.to.METRO];
+      if (hubs.to.TRAIN) hubPitStops.to.TRAIN = [hubs.to.TRAIN];
+      if (hubs.to.BUS) hubPitStops.to.BUS = [hubs.to.BUS];
+
+    } catch (e) {
+      console.error("Error fetching additional data:", e.message);
+    }
 
     res.status(200).json({
       distanceKm,
       totalOptions: finalRoutes.length,
-      routes: finalRoutes.slice(0,7), // NO LIMITS
-      weather: weatherData
+      routes: finalRoutes.slice(0, 7),
+      weather: weatherData,
+      touristPlaces: touristPlaces,
+      hubPitStops: hubPitStops,
+      alerts: []
     })
   } catch (err) {
     console.error("Route planning error:", err)

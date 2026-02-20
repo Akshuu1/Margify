@@ -47,7 +47,7 @@ async function getNearbyTouristPlaces(lat, lng, radius = 15000) {
             const businessKeywords = ['collection', 'service', 'private', 'ltd', 'pvt', 'company', 'corporation',
                 'shop', 'store', 'salon', 'clinic', 'hospital', 'hotel', 'restaurant',
                 'cafe', 'bar', 'office', 'agency', 'consultant', 'builder', 'developer',
-                'fountain', 'coaching', 'institute', 'school', 'college'
+                'fountain', 'coaching', 'institute', 'school', 'college', 'bank', 'atm'
             ];
 
             const hasBusinessKeyword = businessKeywords.some(keyword => name.includes(keyword));
@@ -58,7 +58,7 @@ async function getNearbyTouristPlaces(lat, lng, radius = 15000) {
             // EXCLUDE pure business types
             const businessTypes = ['store', 'shopping_mall', 'restaurant', 'cafe', 'lodging', 'hospital',
                 'doctor', 'pharmacy', 'bank', 'atm', 'gas_station', 'car_dealer',
-                'real_estate_agency', 'lawyer', 'accounting', 'insurance_agency'];
+                'real_estate_agency', 'lawyer', 'accounting', 'insurance_agency', 'car_rental'];
 
             const isPureBusiness = businessTypes.some(type => types.includes(type)) &&
                 !types.includes('tourist_attraction') &&
@@ -125,16 +125,48 @@ async function getNearbyAmenities(lat, lng, radius = 2000) {
                 location: `${lat},${lng}`,
                 radius: radius,
                 type: 'restaurant|cafe|bakery',
-                minrating: 4.0,
                 key: GOOGLE_PLACES_API_KEY
             }
         });
 
-        if (response.data.status !== 'OK') return [];
+        if (response.data.status !== 'OK' || !response.data.results) return [];
 
-        return response.data.results.slice(0, 5).map(place => ({
+        // STRICT FILTERING for quality food places
+        const qualityPlaces = response.data.results.filter(place => {
+            const rating = place.rating || 0;
+            const reviewCount = place.user_ratings_total || 0;
+            const name = (place.name || '').toLowerCase();
+
+            // Exclude chains and generic names (unless highly rated)
+            const genericNames = ['restaurant', 'cafe', 'food', 'snack', 'fast food', 'diner', 'eatery', 'joint', 'spot'];
+            const isGenericName = genericNames.some(term => name.includes(term));
+
+            // Require minimum rating
+            if (rating < 3.8) return false;
+
+            // Require at least some reviews for credibility
+            if (reviewCount < 50) return false;
+
+            // Exclude low-quality generic places
+            if (isGenericName && rating < 4.2) return false;
+
+            return true;
+        });
+
+        // Sort by rating * review count (quality weighted by popularity)
+        const sortedPlaces = qualityPlaces
+            .sort((a, b) => {
+                const scoreA = (a.rating || 0) * Math.log(a.user_ratings_total || 1);
+                const scoreB = (b.rating || 0) * Math.log(b.user_ratings_total || 1);
+                return scoreB - scoreA;
+            })
+            .slice(0, 8); // Return top 8 quality places
+
+        return sortedPlaces.map(place => ({
+            id: place.place_id,
             name: place.name,
             rating: place.rating,
+            userRatingsTotal: place.user_ratings_total || 0,
             vicinity: place.vicinity,
             photo: place.photos && place.photos.length > 0
                 ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`

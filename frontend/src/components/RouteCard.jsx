@@ -49,7 +49,7 @@ export function RouteCard({ route, source, destination, hubPitStops }) {
     // New tags
     Economy: "bg-[#b7e28b] text-[#111111]",
     Premium: "bg-[#d6a8ff] text-[#111111]",
-    "Smart Choice": "bg-gradient-to-r from-[#FFCB74] to-[#ff8c42] text-[#111111] font-bold",
+    "Smart Choice": "bg-gradient-to-r from-[#00d4ff] via-[#0ea5e9] to-[#06b6d4] text-white font-bold shadow-lg shadow-cyan-500/50 border border-cyan-400/30",
     "Eco-Friendly": "bg-emerald-400 text-[#111111]",
   }
 
@@ -64,7 +64,7 @@ export function RouteCard({ route, source, destination, hubPitStops }) {
     TAG_STYLES[route.tag] || "bg-[#2f2f2f] text-[#e0e0e0]"
 
   return (
-    <div className="bg-[#2f2f2f] rounded-2xl p-[1.5rem] w-full flex flex-col justify-between h-auto border border-white/5 hover:border-white/10 transition-all shadow-lg">
+    <div className="bg-gradient-to-br from-[#2f2f2f] to-[#1a1a1a] rounded-2xl p-[1.5rem] w-full flex flex-col justify-between h-auto border border-white/5 hover:border-white/10 transition-all shadow-lg hover:shadow-xl hover:shadow-white/5">
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-wrap gap-2">
           {route.tag && (
