@@ -13,6 +13,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/routes', require('./routes/routePlannerRoutes'));
 app.use('/api/map', require('./routes/mapRoutes'));
 app.use('/api/saved-routes', require('./routes/savedRoutesRoutes'));
+app.use('/api/cab', require('./routes/cabRoutes'));
 app.get('/', (req, res) => res.send('Server Working'));
 
 const PORT = process.env.PORT || 3000;

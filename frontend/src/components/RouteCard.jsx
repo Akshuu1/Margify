@@ -1,14 +1,22 @@
 import { TimelineSegment } from "./TimelineSegment"
 import { formatDuration, formatCurrency } from "../utils/format"
-import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage, Map as MapIcon, Share2 } from "lucide-react"
-import { useState } from "react"
+import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage, Map as MapIcon, Share2, Car } from "lucide-react"
+import { useState, useMemo } from "react"
 import { saveRouteOption } from "../services/savedRoutesApi"
 import MapModal from "./MapModal"
+import CabBookingPanel from "./CabBookingPanel"
 
 export function RouteCard({ route, source, destination, hubPitStops }) {
   const segments = route.segments || []
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [showMap, setShowMap] = useState(false)
+  const [showCabBooking, setShowCabBooking] = useState(false)
+
+  // Find the first CAB/AUTO segment for booking
+  const cabSegment = useMemo(() => {
+    return segments.find(s => s.mode === 'CAB' || s.mode === 'AUTO')
+  }, [segments])
+  const hasCabSegment = !!cabSegment
 
   const handleSaveOption = async (e) => {
     e.stopPropagation();
@@ -121,6 +129,19 @@ Find your best path with Margify!`;
             Map
           </button>
 
+          {hasCabSegment && (
+            <button
+              onClick={() => setShowCabBooking(!showCabBooking)}
+              className={`flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all border active:scale-95 shadow-lg ${showCabBooking
+                  ? 'bg-[#FFCB74] text-[#111111] border-[#FFCB74]'
+                  : 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-[#111111] border-emerald-500/20'
+                }`}
+            >
+              <Car size={12} />
+              {showCabBooking ? 'Close' : 'Book Cab'}
+            </button>
+          )}
+
           <button
             onClick={handleShare}
             className="flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-[#FFCB74]/10 hover:bg-[#FFCB74] text-[#FFCB74] hover:text-[#111111] transition-all border border-[#FFCB74]/20 active:scale-95 shadow-lg shadow-[#FFCB74]/5"
@@ -193,6 +214,17 @@ Find your best path with Margify!`;
           </button>
         </div>
       </div>
+
+      {showCabBooking && cabSegment && (
+        <CabBookingPanel
+          fromCoords={cabSegment.fromCoords || { lat: source.lat, lng: source.lng }}
+          toCoords={cabSegment.toCoords || { lat: destination.lat, lng: destination.lng }}
+          fromName={cabSegment.from || source.name}
+          toName={cabSegment.to || destination.name}
+          distanceKm={parseFloat(cabSegment.distance) || undefined}
+          onClose={() => setShowCabBooking(false)}
+        />
+      )}
 
       {showMap && (
         <MapModal segments={segments} onClose={() => setShowMap(false)} />

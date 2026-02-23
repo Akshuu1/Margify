@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bookmark, Leaf } from 'lucide-react';
+import { Bookmark, Calendar } from 'lucide-react';
 
 export const Navbar = () => {
     const data = localStorage.getItem('user')
@@ -15,6 +15,9 @@ export const Navbar = () => {
         <nav className="fixed top-6 right-6 z-[100] flex items-center gap-4">
             {user ? (
                 <>
+                    <button onClick={() => navigate('/profile', { state: { scrollToSchedule: true } })} className="group relative flex items-center justify-center w-12 h-12 bg-[#2f2f2f] backdrop-blur-md border border-white/10 rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:border-[#FFCB74]/50 hover:bg-[#3a3a3a]" title="My Schedule">
+                        <Calendar size={18} className='text-white group-hover:text-[#FFCB74] transition-colors' />
+                    </button>
                     <button onClick={() => navigate('/saved-routes')} className="group relative flex items-center justify-center w-12 h-12 bg-[#2f2f2f] backdrop-blur-md border border-white/10 rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:border-[#FFCB74]/50 hover:bg-[#3a3a3a]" title="Saved Routes">
                         <Bookmark size={20} className='text-white group-hover:text-[#FFCB74] transition-colors' />
                     </button>

@@ -6,6 +6,13 @@ const MapModal = ({ segments, onClose }) => {
     const [error, setError] = useState(null);
     const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyC3rRX1hit3S23g5f8xNFMnPBhhxp-eBZE';
 
+    // Close on Escape key
+    useEffect(() => {
+        const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [onClose]);
+
     useEffect(() => {
         let isMounted = true;
 
@@ -149,21 +156,28 @@ const MapModal = ({ segments, onClose }) => {
     }, [segments, GOOGLE_KEY]);
 
     return (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            {/* Dedicated Close Button Layer */}
-            <div className="absolute top-8 right-8 z-[2100]">
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onClose();
-                    }}
-                    className="p-4 bg-[#111111] hover:bg-red-500 text-white rounded-full transition-all border border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.5)] active:scale-95 group"
-                >
-                    <X size={28} className="group-hover:rotate-90 transition-transform duration-300" />
-                </button>
-            </div>
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            onClick={onClose}
+        >
+            {/* Close Button - Outside the card to ensure it's always clickable */}
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onClose();
+                }}
+                className="fixed top-8 right-8 z-[10000] p-4 bg-[#1c1c1c] hover:bg-red-500 text-white rounded-full transition-all border-2 border-white/20 shadow-2xl flex items-center justify-center group pointer-events-auto"
+                title="Close Map"
+            >
+                <X size={24} strokeWidth={3} className="group-hover:scale-110 transition-transform" />
+            </button>
 
-            <div className="relative w-full max-w-5xl h-[85vh] bg-[#1c1c1c] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+            <div
+                className="relative w-full max-w-5xl h-[85vh] bg-[#1c1c1c] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="absolute top-0 left-0 p-6 z-10 bg-gradient-to-r from-[#111111]/80 to-transparent">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         <Navigation className="text-[#FFCB74]" size={20} />

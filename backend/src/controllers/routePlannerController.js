@@ -141,10 +141,11 @@ exports.planRoute = async (req, res) => {
 
     const tagPriority = {
       "Smart Choice": 1,
-      "Fastest": 2,
-      "Economy": 3,
-      "Premium": 4,
-      "Not Recommended": 5
+      "Economy": 2,
+      "Fastest": 3,
+      "Eco-Friendly": 4,
+      "Premium": 5,
+      "Not Recommended": 99
     };
 
     finalRoutes.sort((a, b) => {

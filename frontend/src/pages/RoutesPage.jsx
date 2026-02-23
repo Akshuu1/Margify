@@ -10,6 +10,7 @@ import { saveRoute } from "../services/savedRoutesApi";
 import { Bookmark, BookmarkCheck, BarChart3, Map as MapIcon, Utensils, MapPin, Cloudy, Sparkles } from "lucide-react";
 import { DiscoveryHub } from "../components/DiscoveryHub";
 import SavingsDashboard from "../components/SavingsDashboard";
+import SmartDeparture from "../components/SmartDeparture";
 export function RoutesPage() {
   const location = useLocation();
   const { source, destination } = location.state || {};
@@ -38,22 +39,40 @@ export function RoutesPage() {
         );
         let sortedRoutes = data.routes || [];
 
-        // Apply user's default mode preference
+        // Apply user's default mode preference, but ALWAYS keep Smart Choice first & Not Recommended last
         const savedSettings = localStorage.getItem('userSettings');
         if (savedSettings) {
-          const { defaultMode } = JSON.parse(savedSettings);
-          if (defaultMode === 'Metro First') {
-            sortedRoutes.sort((a, b) => {
-              const aHasMetro = a.modes?.some(m => m === 'METRO' || m === 'TRAIN') ? 0 : 1;
-              const bHasMetro = b.modes?.some(m => m === 'METRO' || m === 'TRAIN') ? 0 : 1;
-              if (aHasMetro !== bHasMetro) return aHasMetro - bHasMetro;
-              return a.totalTime - b.totalTime;
-            });
-          } else if (defaultMode === 'Fastest Only') {
-            sortedRoutes.sort((a, b) => a.totalTime - b.totalTime);
-          } else if (defaultMode === 'Budget Priority') {
-            sortedRoutes.sort((a, b) => (a.priceRange?.min || 0) - (b.priceRange?.min || 0));
-          }
+          try {
+            const { defaultMode } = JSON.parse(savedSettings);
+            // Separate pinned tags from the rest
+            const smartChoice = sortedRoutes.filter(r => r.tag === 'Smart Choice');
+            const notRecommended = sortedRoutes.filter(r => r.tag === 'Not Recommended');
+            const rest = sortedRoutes.filter(r => r.tag !== 'Smart Choice' && r.tag !== 'Not Recommended');
+
+            // Helper to get modes from route (uses modes array or falls back to segments)
+            const getModes = (r) => {
+              if (r.modes && r.modes.length > 0) return r.modes;
+              if (r.segments && r.segments.length > 0) return r.segments.map(s => s.mode);
+              return [];
+            };
+
+            if (defaultMode === 'Metro First') {
+              rest.sort((a, b) => {
+                const aModes = getModes(a);
+                const bModes = getModes(b);
+                const aMetro = aModes.some(m => m === 'METRO' || m === 'TRAIN') ? 0 : 1;
+                const bMetro = bModes.some(m => m === 'METRO' || m === 'TRAIN') ? 0 : 1;
+                if (aMetro !== bMetro) return aMetro - bMetro;
+                return a.totalTime - b.totalTime;
+              });
+            } else if (defaultMode === 'Fastest Only') {
+              rest.sort((a, b) => a.totalTime - b.totalTime);
+            } else if (defaultMode === 'Budget Priority') {
+              rest.sort((a, b) => (a.priceRange?.min || 0) - (b.priceRange?.min || 0));
+            }
+
+            sortedRoutes = [...smartChoice, ...rest, ...notRecommended];
+          } catch { }
         }
 
         setRoutes(sortedRoutes);
@@ -117,6 +136,10 @@ export function RoutesPage() {
           </div>
         ))}
         {routes.length > 1 && <SavingsDashboard routes={routes} />}
+        <SmartDeparture
+          destinationName={destination?.name}
+          fastestRouteTime={routes.length > 0 ? routes.reduce((min, r) => Math.min(min, r.totalTime || Infinity), Infinity) : null}
+        />
         <div className="flex flex-col gap-6 mt-4">
           {routes.map((route) => (
             <RouteCard key={route.id} route={route} source={source} destination={destination} hubPitStops={hubPitStops} />

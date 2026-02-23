@@ -87,6 +87,9 @@ export function SearchLocation() {
                         setSourceResults([])
                       }}>
                       <div className="font-medium">{place.name}</div>
+                      {place.address && place.address !== place.name && (
+                        <div className="text-[11px] text-white/30 mt-0.5 truncate">{place.address}</div>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -127,6 +130,9 @@ export function SearchLocation() {
                       setDestinationResults([])
                     }}>
                       <div className="font-medium">{place.name}</div>
+                      {place.address && place.address !== place.name && (
+                        <div className="text-[11px] text-white/30 mt-0.5 truncate">{place.address}</div>
+                      )}
                     </li>
                   ))}
                 </ul>)}

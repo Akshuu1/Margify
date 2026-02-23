@@ -29,7 +29,8 @@ router.get('/search', async (req, res) => {
 
         const results = data.places.slice(0, 5).map(place => ({
             id: place.id,
-            name: place.formattedAddress || place.displayName.text,
+            name: place.displayName?.text || place.formattedAddress || 'Unknown',
+            address: place.formattedAddress || '',
             lat: place.location.latitude,
             lng: place.location.longitude
         }));
