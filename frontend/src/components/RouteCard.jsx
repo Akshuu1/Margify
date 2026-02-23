@@ -1,6 +1,6 @@
 import { TimelineSegment } from "./TimelineSegment"
 import { formatDuration, formatCurrency } from "../utils/format"
-import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage, Map as MapIcon } from "lucide-react"
+import { Users, Shield, Bookmark, BookmarkPlus, Sparkles, Luggage, Map as MapIcon, Share2 } from "lucide-react"
 import { useState } from "react"
 import { saveRouteOption } from "../services/savedRoutesApi"
 import MapModal from "./MapModal"
@@ -31,9 +31,39 @@ export function RouteCard({ route, source, destination, hubPitStops }) {
         route: route
       });
       setIsBookmarked(true);
-      alert('Specific route option saved!');
     } catch (err) {
       alert('Failed to save route option');
+    }
+  };
+
+  const handleShare = (e) => {
+    e.stopPropagation();
+
+    const journeySummary = segments.map((seg, i) =>
+      `${i + 1}. ${seg.mode}: ${seg.from} ➔ ${seg.to} (${seg.duration} min, ${seg.distance} km)`
+    ).join('\n');
+
+    const shareText = `🚀 Margify Route: ${source.name} to ${destination.name}
+━━━━━━━━━━━━━━━━━━━━
+⏱️ Total Time: ${formatDuration(route.totalTime)}
+💰 Price: ${formatCurrency(route.priceRange.min)} - ${formatCurrency(route.priceRange.max)}
+🔄 Transfers: ${route.transfers}
+✨ Tag: ${route.tag || 'Standard'}
+
+🛤️ Journey Path:
+${journeySummary}
+
+Find your best path with Margify!`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `Margify Route Details`,
+        text: shareText,
+        url: window.location.href,
+      }).catch(() => { });
+    } else {
+      navigator.clipboard.writeText(`${shareText}\n\nLink: ${window.location.href}`);
+      alert('Journey details copied to clipboard!');
     }
   };
 
@@ -47,6 +77,7 @@ export function RouteCard({ route, source, destination, hubPitStops }) {
     Premium: "bg-[#d6a8ff] text-[#111111]",
     "Smart Choice": "bg-gradient-to-r from-[#00d4ff] via-[#0ea5e9] to-[#06b6d4] text-white font-bold shadow-lg shadow-cyan-500/50 border border-cyan-400/30",
     "Eco-Friendly": "bg-emerald-400 text-[#111111]",
+    "Not Recommended": "bg-[#444444] text-[#aaaaaa] border border-white/10 opacity-60",
   }
 
   const VIBE_STYLES = {
@@ -60,21 +91,35 @@ export function RouteCard({ route, source, destination, hubPitStops }) {
     TAG_STYLES[route.tag] || "bg-[#2f2f2f] text-[#e0e0e0]"
 
   return (
-    <div className="bg-gradient-to-br from-[#2f2f2f] to-[#1a1a1a] rounded-2xl p-[1.5rem] w-full flex flex-col justify-between h-auto border border-white/5 hover:border-white/10 transition-all shadow-lg hover:shadow-xl hover:shadow-white/5">
+    <div className={`relative overflow-hidden ${route.tag === "Smart Choice" ? 'border-cyan-500/30' : 'border-white/5'} bg-gradient-to-br from-[#2f2f2f]/80 to-[#1a1a1a]/80 backdrop-blur-xl rounded-3xl p-[1.5rem] w-full flex flex-col justify-between h-auto border hover:border-white/20 transition-all shadow-2xl hover:shadow-cyan-500/10`}>
+      {route.tag === "Smart Choice" && (
+        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+          <Sparkles size={120} className="text-cyan-400" />
+        </div>
+      )}
       <div className="flex justify-between items-center mb-4">
         <div className="flex flex-wrap gap-2">
           {route.tag && (
-            <span className={`${tagClass} px-4 py-1 rounded-full text-sm font-medium`}>
+            <span className={`${tagClass} px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xl`}>
+              {route.tag === "Smart Choice" && <Sparkles size={14} className="text-white animate-pulse" />}
               {route.tag}
             </span>
           )}
 
           <button
             onClick={() => setShowMap(true)}
-            className="flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium bg-white/10 hover:bg-[#FFCB74] hover:text-[#111111] transition-all border border-white/5"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 hover:bg-[#FFCB74] hover:text-[#111111] transition-all border border-white/5 active:scale-95"
           >
             <MapIcon size={14} />
             Map View
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/5 hover:bg-white/15 transition-all border border-white/5 active:scale-95"
+          >
+            <Share2 size={14} />
+            Share
           </button>
 
           {route.vibe && (

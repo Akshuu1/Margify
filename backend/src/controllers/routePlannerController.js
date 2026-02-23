@@ -89,39 +89,74 @@ exports.planRoute = async (req, res) => {
         }
       });
 
+      // --- SMART CHOICE LOGIC (Weighted Scoring) ---
       const timeValues = finalRoutes.map(r => r.totalTime);
       const priceValues = finalRoutes.map(r => r.priceRange.min);
+      const transferValues = finalRoutes.map(r => r.transfers);
+
       const minTime = Math.min(...timeValues);
       const maxTime = Math.max(...timeValues);
       const minPrice = Math.min(...priceValues);
       const maxPrice = Math.max(...priceValues);
-      const timeRange = maxTime - minTime;
-      const priceRange = maxPrice - minPrice;
+      const minTransfers = Math.min(...transferValues);
+      const maxTransfers = Math.max(...transferValues);
+
+      const timeRange = maxTime - minTime || 1;
+      const priceRange = maxPrice - minPrice || 1;
+      const transferRange = maxTransfers - minTransfers || 1;
+
+      let bestScore = Infinity;
+      let smartRouteId = null;
 
       finalRoutes.forEach(r => {
-        if (r.tag) return;
-        if (!r.modes.includes('METRO')) return;
+        // Normalize values (0 to 1, where 0 is best)
+        const tNorm = (r.totalTime - minTime) / timeRange;
+        const pNorm = (r.priceRange.min - minPrice) / priceRange;
+        const xNorm = (r.transfers - minTransfers) / transferRange;
 
-        const timeNorm = timeRange > 0 ? (r.totalTime - minTime) / timeRange : 0.5;
-        const priceNorm = priceRange > 0 ? (r.priceRange.min - minPrice) / priceRange : 0.5;
+        // Weights: Time (40%), Price (40%), Transfers (20%)
+        const score = (tNorm * 0.4) + (pNorm * 0.4) + (xNorm * 0.2);
+        r.score = score;
 
-        if (timeNorm >= 0.3 && timeNorm <= 0.7 && priceNorm >= 0.3 && priceNorm <= 0.7) {
+        // We prefer routes with METRO or TRAIN for "Smart Choice" if they are efficient
+        const preferenceBonus = (r.modes.includes('METRO') || r.modes.includes('TRAIN')) ? 0.9 : 1.0;
+        const finalScore = score * preferenceBonus;
+
+        if (finalScore < bestScore) {
+          bestScore = finalScore;
+          smartRouteId = r.id;
+        }
+      });
+
+      // Clear existing tags and assign new ones based on refined logic
+      finalRoutes.forEach(r => {
+        if (r.id === smartRouteId) {
           r.tag = "Smart Choice";
+        } else if (r.totalTime === minTime) {
+          r.tag = "Fastest";
+        } else if (r.priceRange.min === minPrice) {
+          r.tag = "Economy";
+        } else if (r.modes.includes('CAB') || r.modes.includes('PLANE')) {
+          r.tag = "Premium";
         }
       });
     }
 
     const tagPriority = {
       "Smart Choice": 1,
-      "Economy": 2,
-      "Premium": 3,
-      "Fastest": 4
+      "Fastest": 2,
+      "Economy": 3,
+      "Premium": 4
     };
 
     finalRoutes.sort((a, b) => {
       const priorityA = tagPriority[a.tag] || 99;
       const priorityB = tagPriority[b.tag] || 99;
-      return priorityA - priorityB;
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      return a.totalTime - b.totalTime;
     });
 
     let weatherData = null;

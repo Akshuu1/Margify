@@ -48,6 +48,15 @@ export function Login() {
             <svg width="30" height="30" viewBox="0 0 16 16"><path fill="#f44336" d="M7.209 1.061c.725-.081 1.154-.081 1.933 0a6.57 6.57 0 0 1 3.65 1.82l-1.986 1.93q-1.876-1.59-4.188-.734q-1.696.78-2.362 2.528L1.946 4.92q1.683-3.245 5.26-3.86" /><path fill="#ffc107" d="M2 11.116Q.527 8.038 1.946 4.92l2.148 1.658q-.343 1.356.16 2.744z" /><path fill="#448aff" d="M12.685 13.29l-2.202-1.74q1.15-.812 1.396-2.228H8.122V6.713l6.497.055q.616 3.345-1.423 6.032" /><path fill="#43a047" d="M4.255 9.322q1.23 3.057 4.51 2.854a3.94 3.94 0 0 0 1.718-.626l2.202 1.74a6.62 6.62 0 0 1-4.027 1.684Q3.82 14.524 2 11.116z" /></svg>
           </div>
           <button onClick={() => navigate("/signup")} className="text-[0.7rem] opacity-80 hover:opacity-100">Don’t have an account?</button>
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <button
+              onClick={() => navigate("/search")}
+              className="text-[0.8rem] text-[#FFCB74] font-medium hover:underline flex items-center justify-center gap-2 mx-auto"
+            >
+              Continue as Guest
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

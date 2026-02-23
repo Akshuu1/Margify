@@ -140,6 +140,6 @@ export function SearchLocation() {
           </button>
         </form>
       </div>
-    </div>
+    </div >
   )
 }

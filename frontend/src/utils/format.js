@@ -11,6 +11,10 @@ export function formatDuration(minutes) {
     return `${hours} hr ${mins} min`
 }
 
-export function formatCurrency(amount) {
-    return `₹${amount}`
+export function formatCurrency(amount, currency = 'INR') {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: currency,
+        maximumFractionDigits: 0
+    }).format(amount)
 }

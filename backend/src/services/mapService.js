@@ -100,20 +100,38 @@ async function findNearestPOI(location, query, maxDist = 20) {
       'airport': ['airport']
     };
 
-    let includedTypes = typeMap[query.toLowerCase()] || [typeMap[query.toLowerCase().replace(' station', '')]?.[0] || 'transit_station'];
+    let includedTypes = typeMap[query.toLowerCase()] || [];
+    if (includedTypes.length === 0) {
+      includedTypes = query.toLowerCase().includes('metro') ? ['subway_station'] : ['transit_station'];
+    }
+
     let places = [];
     const isSonipatArea = location.lat > 28.9 && location.lat < 29.1;
 
     const filterPOI = (list) => {
+      const qLower = query.toLowerCase();
       return list.filter(p => {
         const name = p.displayName?.text?.toLowerCase() || "";
         const address = (p.formattedAddress || "").toLowerCase();
         const types = (p.types || []).map(t => t.toLowerCase());
+
+        // Strict filtering for Metro
+        if (qLower.includes('metro')) {
+          const isSubway = types.includes('subway_station');
+          const hasMetroInName = name.includes('metro');
+          if (!isSubway && !hasMetroInName) return false;
+          // Filter out things like "Metro Hospital" or "Metro Shoes"
+          const falsePositives = ['hospital', 'shoes', 'bazaar', 'mart', 'mall', 'walkway', 'office', 'residency', 'apartments'];
+          if (falsePositives.some(fp => name.includes(fp))) return false;
+        }
+
         const blacklist = ['police', 'booth', 'chowki', 'post', 'security', 'checkpoint'];
         let isBlacklisted = blacklist.some(term => name.includes(term) || address.includes(term) || types.includes(term));
-        if (isSonipatArea && query.toLowerCase().includes('bus')) {
+
+        if (isSonipatArea && qLower.includes('bus')) {
           if (name.includes('narela') || name.includes('bawana')) return false;
         }
+
         if (isBlacklisted) return false;
         return true;
       });
