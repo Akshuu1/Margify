@@ -85,7 +85,7 @@ export function FoodHubs({ hubStops, onClose }) {
                                     {place.name}
                                 </h4>
                                 <p className="text-[10px] text-[#666] mb-3 flex items-center gap-1">
-                                    <MapPin size={10} /> {place.vicinity.split(',')[0]}
+                                    <MapPin size={10} /> {place.vicinity ? place.vicinity.split(',')[0] : 'Nearby'}
                                 </p>
 
                                 <div className="mt-auto flex items-center justify-between">

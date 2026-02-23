@@ -67,62 +67,88 @@ export function DiscoveryHub({ weather, touristPlaces, hubPitStops, onShowTouris
         );
     };
     return (
-        <div ref={hubRef} className="w-full mb-10 space-y-4 px-1">
-            <div className="flex flex-col xl:flex-row gap-6">
+        <div ref={hubRef} className="w-full mb-12 space-y-6 px-1">
+            <div className="flex flex-col xl:flex-row gap-8">
                 <div className="xl:flex-[2] flex flex-col md:flex-row gap-6">
-                    <WeatherCard data={weather?.source} label={weather?.source?.location} type="Source" />
-                    <WeatherCard data={weather?.destination} label={weather?.destination?.location} type="Dest" />
+                    <WeatherCard data={weather?.source} label={weather?.source?.location} type="Departing from" />
+                    <WeatherCard data={weather?.destination} label={weather?.destination?.location} type="Arriving at" />
                 </div>
-                <div className="xl:flex-[1] bg-[#1c1c1c] p-8 rounded-2xl border border-white/10 shadow-xl flex flex-col justify-between relative group overflow-hidden">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-[#FFCB74]/5 rounded-full blur-[80px] pointer-events-none group-hover:bg-[#FFCB74]/10 transition-all"></div>
-                    <div className="mb-6 relative z-10">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Sparkles className="text-[#FFCB74]" size={16} />
-                            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FFCB74]/80">Intelligence</span>
+
+                <div className="xl:flex-[1] bg-gradient-to-br from-[#1c1c1c] to-[#111111] p-10 rounded-[2.5rem] border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.6)] flex flex-col justify-between relative group overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFCB74]/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-[#FFCB74]/15 transition-all duration-700"></div>
+
+                    <div className="mb-10 relative z-10">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-[#FFCB74]/20 rounded-lg">
+                                <Sparkles className="text-[#FFCB74]" size={16} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFCB74]">Intelligence</span>
                         </div>
-                        <h3 className="text-3xl font-bold text-white tracking-tighter leading-none">Discovery <br /><span className="text-white/30 italic font-medium tracking-normal text-2xl">Hub</span></h3>
+                        <h3 className="text-4xl font-bold text-white tracking-tighter leading-none">Discovery <br /><span className="text-[#FFCB74]/40 italic font-medium tracking-normal text-3xl">Hub</span></h3>
                     </div>
-                    <div className="flex flex-col gap-3.5 mt-auto relative z-10">
+
+                    <div className="flex flex-col gap-4 mt-auto relative z-10">
                         <button
                             onClick={onShowTourist}
                             disabled={!touristPlaces || touristPlaces.length === 0}
-                            className={`w-full group/btn flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 active:scale-[0.97] ${touristPlaces?.length > 0
-                                ? 'bg-white/5 border-white/5 hover:border-indigo-500/40 hover:bg-[#FFCB74]/5'
-                                : 'bg-white/1 border-transparent opacity-20 cursor-not-allowed'}`}
+                            className={`w-full group/btn flex items-center justify-between p-6 rounded-[2rem] border transition-all duration-500 active:scale-[0.98] ${touristPlaces?.length > 0
+                                ? 'bg-white/[0.03] border-white/10 hover:border-indigo-500/50 hover:bg-white/[0.07] shadow-xl'
+                                : 'bg-white/[0.01] border-transparent opacity-20 cursor-not-allowed'}`}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white/5 rounded-xl group-hover/btn:bg-indigo-500/10 border border-white/10 transition-colors shadow-inner">
-                                    <Navigation className="text-indigo-400 group-hover/btn:opacity-100 opacity-60" size={18} />
+                            <div className="flex items-center gap-5">
+                                <div className="p-3 bg-indigo-500/10 rounded-2xl group-hover/btn:bg-indigo-500/20 transition-colors shadow-inner border border-indigo-500/20">
+                                    <Navigation className="text-indigo-400" size={20} />
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-white tracking-tight">Attractions</div>
-                                    <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest mt-0.5">{touristPlaces?.length || 0} Landmarks</div>
+                                    <div className="text-base font-bold text-white tracking-tight">Attractions</div>
+                                    <div className="text-[10px] text-white/40 font-black uppercase tracking-widest mt-1">{touristPlaces?.length || 0} Discovery Points</div>
                                 </div>
                             </div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/10 group-hover/btn:bg-indigo-500 transition-colors"></div>
+                            <ChevronRight size={18} className="text-white/20 group-hover/btn:text-indigo-400 group-hover/btn:translate-x-1 transition-all" />
                         </button>
+
                         <button
                             onClick={onShowFood}
                             disabled={!hasStops}
-                            className={`w-full group/btn flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 active:scale-[0.97] ${hasStops
-                                ? 'bg-white/5 border-white/5 hover:border-orange-500/40 hover:bg-[#FFCB74]/5'
-                                : 'bg-white/1 border-transparent opacity-20 cursor-not-allowed'}`}
+                            className={`w-full group/btn flex items-center justify-between p-6 rounded-[2rem] border transition-all duration-500 active:scale-[0.98] ${hasStops
+                                ? 'bg-[#FFCB74]/5 border-[#FFCB74]/20 hover:border-[#FFCB74]/60 hover:bg-[#FFCB74]/10 shadow-2xl shadow-[#FFCB74]/5'
+                                : 'bg-white/[0.01] border-transparent opacity-20 cursor-not-allowed'}`}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="p-2.5 bg-white/5 rounded-xl group-hover/btn:bg-orange-500/10 border border-white/10 transition-colors shadow-inner">
-                                    <Utensils className="text-orange-400 group-hover/btn:opacity-100 opacity-60" size={18} />
+                            <div className="flex items-center gap-5">
+                                <div className="p-3 bg-[#FFCB74]/10 rounded-2xl group-hover/btn:bg-[#FFCB74]/20 transition-colors shadow-inner border border-[#FFCB74]/20">
+                                    <Utensils className="text-[#FFCB74]" size={20} />
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-white tracking-tight">Food Hubs</div>
-                                    <div className="text-[9px] text-white/30 font-bold uppercase tracking-widest mt-0.5">Elite Selection</div>
+                                    <div className="text-base font-bold text-white tracking-tight">Food Hubs</div>
+                                    <div className="text-[10px] text-[#FFCB74]/60 font-black uppercase tracking-widest mt-1">Gourmet Selection</div>
                                 </div>
                             </div>
-                            <div className={`w-2 h-2 rounded-full ${hasStops ? 'bg-orange-400 animate-pulse' : 'bg-white/10'}`}></div>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-2.5 h-2.5 rounded-full ${hasStops ? 'bg-[#FFCB74] shadow-[0_0_15px_rgba(255,203,116,0.8)] animate-pulse' : 'bg-white/10'}`}></div>
+                                <ChevronRight size={18} className="text-[#FFCB74]/20 group-hover/btn:text-[#FFCB74] group-hover/btn:translate-x-1 transition-all" />
+                            </div>
                         </button>
                     </div>
                 </div>
             </div>
-            <div className="pb-6 border-b border-white/5"></div>
+            <div className="pb-8 border-b border-white/5 opacity-50"></div>
         </div>
     );
-}
+};
+
+const ChevronRight = ({ size, className }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+    >
+        <path d="m9 18 6-6-6-6" />
+    </svg>
+)

@@ -36,7 +36,27 @@ export function RoutesPage() {
           localStorage.getItem("token"),
           {}
         );
-        setRoutes(data.routes || []);
+        let sortedRoutes = data.routes || [];
+
+        // Apply user's default mode preference
+        const savedSettings = localStorage.getItem('userSettings');
+        if (savedSettings) {
+          const { defaultMode } = JSON.parse(savedSettings);
+          if (defaultMode === 'Metro First') {
+            sortedRoutes.sort((a, b) => {
+              const aHasMetro = a.modes?.some(m => m === 'METRO' || m === 'TRAIN') ? 0 : 1;
+              const bHasMetro = b.modes?.some(m => m === 'METRO' || m === 'TRAIN') ? 0 : 1;
+              if (aHasMetro !== bHasMetro) return aHasMetro - bHasMetro;
+              return a.totalTime - b.totalTime;
+            });
+          } else if (defaultMode === 'Fastest Only') {
+            sortedRoutes.sort((a, b) => a.totalTime - b.totalTime);
+          } else if (defaultMode === 'Budget Priority') {
+            sortedRoutes.sort((a, b) => (a.priceRange?.min || 0) - (b.priceRange?.min || 0));
+          }
+        }
+
+        setRoutes(sortedRoutes);
         setWeather(data.weather);
         setAlerts(data.alerts || []);
         setTouristPlaces(data.touristPlaces || []);

@@ -123,10 +123,8 @@ async function getNearbyAmenities(lat, lng, radius = 2000) {
             const genericNames = ['restaurant', 'cafe', 'food', 'snack', 'fast food', 'diner', 'eatery', 'joint', 'spot'];
             const isGenericName = genericNames.some(term => name.includes(term));
 
-            if (rating < 3.8) return false;
-            if (reviewCount < 50) return false;
-            if (isGenericName && rating < 4.2) return false;
-
+            if (rating < 3.5) return false;
+            if (reviewCount < 20) return false;
             return true;
         });
 

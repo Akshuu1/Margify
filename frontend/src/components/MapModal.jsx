@@ -149,15 +149,21 @@ const MapModal = ({ segments, onClose }) => {
     }, [segments, GOOGLE_KEY]);
 
     return (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <div className="relative w-full max-w-5xl h-[85vh] bg-[#1c1c1c] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            {/* Dedicated Close Button Layer */}
+            <div className="absolute top-8 right-8 z-[2100]">
                 <button
-                    onClick={onClose}
-                    className="absolute top-6 right-6 z-[1010] p-3 bg-black/60 hover:bg-red-500/80 rounded-full transition-all text-white border border-white/20 active:scale-95"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}
+                    className="p-4 bg-[#111111] hover:bg-red-500 text-white rounded-full transition-all border border-white/20 shadow-[0_0_30px_rgba(0,0,0,0.5)] active:scale-95 group"
                 >
-                    <X size={24} />
+                    <X size={28} className="group-hover:rotate-90 transition-transform duration-300" />
                 </button>
+            </div>
 
+            <div className="relative w-full max-w-5xl h-[85vh] bg-[#1c1c1c] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
                 <div className="absolute top-0 left-0 p-6 z-10 bg-gradient-to-r from-[#111111]/80 to-transparent">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         <Navigation className="text-[#FFCB74]" size={20} />
