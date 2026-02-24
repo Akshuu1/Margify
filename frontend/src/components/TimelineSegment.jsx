@@ -18,10 +18,10 @@ export function TimelineSegment({ segment, isLast }) {
     }
 
     return (
-        <div className="flex gap-4 relative">
+        <div className="flex gap-3 sm:gap-4 relative">
             <div className="flex flex-col items-center">
                 <div
-                    className="text-2xl text-[#e0e0e0] z-10 bg-[#1c1c1c] rounded-full p-1"
+                    className="text-xl sm:text-2xl text-[#e0e0e0] z-10 bg-[#1c1c1c] rounded-full p-1"
                     style={{
                         boxShadow: lineColor ? `0 0 10px ${lineColor}40` : 'none',
                         border: lineColor ? `1px solid ${lineColor}` : 'none'
@@ -37,13 +37,13 @@ export function TimelineSegment({ segment, isLast }) {
             <div className="flex-1 pb-6">
                 <div className="flex justify-between items-start">
                     <div className="w-full">
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-medium text-[#e0e0e0] capitalize">
+                        <div className="flex items-center flex-wrap gap-2">
+                            <h3 className="text-base sm:text-lg font-medium text-[#e0e0e0] capitalize">
                                 {mode.toLowerCase()}
                             </h3>
                             {lineName && (
                                 <span
-                                    className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-black"
+                                    className="text-[8px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-black whitespace-nowrap"
                                     style={{ backgroundColor: lineColor || '#e0e0e0' }}
                                 >
                                     {lineName}
@@ -51,20 +51,21 @@ export function TimelineSegment({ segment, isLast }) {
                             )}
                         </div>
 
-                        <div className="text-xs text-[#888] mt-1 flex items-center gap-2">
-                            <span>🕒 {formatDuration(duration)}</span>
-                            <span>{formatCurrency(cost)} - {formatCurrency(Math.round(cost * 1.2))}</span>
+                        <div className="text-[10px] sm:text-xs text-[#888] mt-1 flex items-center gap-2 flex-wrap">
+                            <span className="flex items-center gap-1">🕒 {formatDuration(duration)}</span>
+                            <span className="sm:inline hidden text-gray-600">•</span>
+                            <span className="flex items-center gap-1 font-medium text-gray-200/80">{formatCurrency(cost)} - {formatCurrency(Math.round(cost * 1.2))}</span>
                         </div>
 
-                        <div className="mt-2 text-sm text-[#bbb]">
+                        <div className="mt-2 text-xs sm:text-sm text-[#bbb]">
                             <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#888]"></div>
-                                {from}
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#888] shrink-0"></div>
+                                <span className="truncate">{from}</span>
                             </div>
                             <div className="ml-[2.5px] border-l border-dashed border-[#555] h-3 my-1"></div>
                             <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#888]"></div>
-                                {to} {stationCode && <span className="ml-1 text-[10px] bg-[#333] px-1 rounded text-[#999]">{stationCode}</span>}
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#888] shrink-0"></div>
+                                <span className="truncate">{to}</span> {stationCode && <span className="ml-1 text-[8px] sm:text-[10px] bg-[#333] px-1 rounded text-[#999] shrink-0">{stationCode}</span>}
                             </div>
                         </div>
                     </div>

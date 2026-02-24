@@ -109,18 +109,18 @@ export function RoutesPage() {
   return (
     <div className="w-screen h-screen flex flex-col text-[#e0e0e0] overflow-hidden" style={{ fontFamily: "Space Grotesk" }}>
       <div className="px-4 py-4 sm:px-6 md:px-12 lg:px-16 sm:py-6 flex-shrink-0">
-        <h1 className="text-4xl sm:text-5xl lg:text-[4rem] text-center mb-6 font-[Kiona-Regular] tracking-tight">Margify</h1>
+        <h1 className="text-3xl sm:text-5xl lg:text-[4rem] text-center mb-6 font-[Kiona-Regular] tracking-tight">Margify</h1>
         <div className="bg-[#FFCB74] rounded-2xl p-4 text-[#111111] shadow-xl">
           <div className="flex flex-col xl:flex-row items-center gap-4 xl:gap-8">
-            <div className="w-full xl:flex-1 flex flex-col md:flex-row items-center gap-3">
-              <div className="flex-1 w-full bg-[#2f2f2f] text-[#e0e0e0] px-5 py-3 rounded-xl text-center shadow-inner font-medium text-sm md:text-base border border-white/5 truncate">{source.name}</div>
-              <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em]">TO</div>
-              <div className="flex-1 w-full bg-[#2f2f2f] text-[#e0e0e0] px-5 py-3 rounded-xl text-center shadow-inner font-medium text-sm md:text-base border border-white/5 truncate">{destination.name}</div>
+            <div className="w-full xl:flex-1 flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex-1 w-full bg-[#2f2f2f] text-[#e0e0e0] px-4 py-3 rounded-xl text-center shadow-inner font-medium text-xs sm:text-sm md:text-base border border-white/5 truncate">{source.name}</div>
+              <div className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em] py-1">TO</div>
+              <div className="flex-1 w-full bg-[#2f2f2f] text-[#e0e0e0] px-4 py-3 rounded-xl text-center shadow-inner font-medium text-xs sm:text-sm md:text-base border border-white/5 truncate">{destination.name}</div>
             </div>
             <div className="flex gap-2 w-full xl:w-auto">
-              <button onClick={() => window.location.href = '/search'} className="flex-1 xl:flex-none px-4 py-3 bg-[#111111] text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition-transform active:scale-95">Change Route</button>
-              <button onClick={handleSaveRoute} disabled={isSaved} className={`flex-1 xl:flex-none px-4 py-3 bg-[#111111] rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition-all ${isSaved ? 'text-green-400' : 'text-white'}`}>
-                {isSaved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+              <button onClick={() => window.location.href = '/search'} className="flex-1 xl:flex-none px-3 py-3 bg-[#111111] text-white rounded-xl font-bold flex items-center justify-center gap-2 text-[10px] sm:text-xs transition-transform active:scale-95">Change Route</button>
+              <button onClick={handleSaveRoute} disabled={isSaved} className={`flex-1 xl:flex-none px-3 py-3 bg-[#111111] rounded-xl font-bold flex items-center justify-center gap-2 text-[10px] sm:text-xs transition-all ${isSaved ? 'text-green-400' : 'text-white'}`}>
+                {isSaved ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
                 {isSaved ? 'Saved' : 'Save'}
               </button>
             </div>

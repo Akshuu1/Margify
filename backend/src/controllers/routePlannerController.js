@@ -59,6 +59,9 @@ exports.planRoute = async (req, res) => {
     }
 
     finalRoutes = finalRoutes.filter(route => {
+      // User requested: i dont want walk for more than 2 km
+      if (route.totalWalkDistance > 2) return false;
+
       if (distanceKm > 2 && route.modes.some(mode => mode === 'WALK')) {
         return route.modes.length > 1;
       }
@@ -74,88 +77,57 @@ exports.planRoute = async (req, res) => {
     finalRoutes.sort((a, b) => a.totalTime - b.totalTime);
 
     if (finalRoutes.length > 0) {
-      // --- CLEAN SINGLE-PASS TAGGING ---
-      // Step 1: Find the best values
-      const minTime = Math.min(...finalRoutes.map(r => r.totalTime));
-      const maxTime = Math.max(...finalRoutes.map(r => r.totalTime));
-      const minPrice = Math.min(...finalRoutes.map(r => r.priceRange.min));
-      const maxPrice = Math.max(...finalRoutes.map(r => r.priceRange.max));
+      finalRoutes[0].tag = "Fastest";
 
-      // Step 2: Score every route. Lower = better.
-      let bestScoreId = null;
-      let bestScore = Infinity;
+      const cheapest = [...finalRoutes].sort((a, b) => a.priceRange.min - b.priceRange.min)[0];
+      if (cheapest && cheapest.id !== finalRoutes[0].id) {
+        const match = finalRoutes.find(r => r.id === cheapest.id);
+        if (match) match.tag = "Economy";
+      }
 
       finalRoutes.forEach(r => {
-        // Normalize time and price to 0-1 range
-        const timeNorm = maxTime > minTime ? (r.totalTime - minTime) / (maxTime - minTime) : 0;
-        const priceNorm = maxPrice > minPrice ? (r.priceRange.min - minPrice) / (maxPrice - minPrice) : 0;
-
-        // Combined score: 50% time, 50% price, with transfer penalty
-        r._score = (timeNorm * 0.5) + (priceNorm * 0.5) + (r.transfers * 0.05);
-
-        // Metro/Train get a reliability bonus (lower score = better)
-        if (r.modes.includes('METRO') || r.modes.includes('TRAIN')) {
-          r._score *= 0.85;
-        }
-
-        if (r._score < bestScore) {
-          bestScore = r._score;
-          bestScoreId = r.id;
-        }
-      });
-
-      // Step 3: Assign tags — one pass, no conflicts
-      const fastestId = finalRoutes[0].id; // already sorted by time
-      const cheapestRoute = [...finalRoutes].sort((a, b) => a.priceRange.min - b.priceRange.min)[0];
-      const cheapestId = cheapestRoute.id;
-
-      finalRoutes.forEach(r => {
-        const timeRatio = r.totalTime / minTime;
-        const priceRatio = minPrice > 0 ? r.priceRange.min / minPrice : 1;
-
-        // Not Recommended: must be BOTH slow AND expensive (not just one)
-        if (timeRatio > 2.0 && priceRatio > 1.5) {
-          r.tag = "Not Recommended";
-          return;
-        }
-
-        if (r.id === bestScoreId) {
-          r.tag = "Smart Choice";
-        } else if (r.id === fastestId) {
-          r.tag = "Fastest";
-        } else if (r.id === cheapestId) {
-          r.tag = "Economy";
-        } else if (r.modes.includes('CAB') || r.modes.includes('PLANE')) {
+        if (r.tag) return;
+        if (r.modes.includes('CAB') || r.modes.includes('PLANE')) {
           r.tag = "Premium";
-        } else {
-          // Give remaining routes a descriptive tag
-          if (r.modes.includes('METRO') || r.modes.includes('TRAIN')) {
-            r.tag = "Eco-Friendly";
-          }
         }
       });
 
-      // Clean up internal score
-      finalRoutes.forEach(r => delete r._score);
+      const timeValues = finalRoutes.map(r => r.totalTime);
+      const priceValues = finalRoutes.map(r => r.priceRange.min);
+      const minTime = Math.min(...timeValues);
+      const maxTime = Math.max(...timeValues);
+      const minPrice = Math.min(...priceValues);
+      const maxPrice = Math.max(...priceValues);
+      const timeRange = maxTime - minTime;
+      const priceRange = maxPrice - minPrice;
+
+      finalRoutes.forEach(r => {
+        if (r.tag) return;
+        // Smart Choice logic: efficient balance of time and price
+        // Removed METRO restriction to allow CAB or other efficient routes
+
+        const timeNorm = timeRange > 0 ? (r.totalTime - minTime) / timeRange : 0.5;
+        const priceNorm = priceRange > 0 ? (r.priceRange.min - minPrice) / priceRange : 0.5;
+
+        // Smart Choice is roughly in the middle-to-high performance for both time and price
+        // (Not the absolute cheapest, not the absolute fastest, but a good balance)
+        if (timeNorm <= 0.6 && priceNorm <= 0.6) {
+          r.tag = "Smart Choice";
+        }
+      });
     }
 
     const tagPriority = {
       "Smart Choice": 1,
       "Economy": 2,
-      "Fastest": 3,
-      "Eco-Friendly": 4,
-      "Premium": 5,
-      "Not Recommended": 99
+      "Premium": 3,
+      "Fastest": 4
     };
 
     finalRoutes.sort((a, b) => {
       const priorityA = tagPriority[a.tag] || 99;
       const priorityB = tagPriority[b.tag] || 99;
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-      return a.totalTime - b.totalTime;
+      return priorityA - priorityB;
     });
 
     let weatherData = null;
